@@ -24,6 +24,7 @@ import {
 
 // ── Types ─────────────────────────────────────────────────
 type Page = 'dashboard' | 'highlight' | 'analysis' | 'clips' | 'upload' | 'broadcast' | 'settings'
+type UploadNav = { rank: number; tab: 'upload' | 'export' }
 
 type Clip = {
   rank: number
@@ -50,22 +51,31 @@ const NAV: { icon: React.ElementType; label: string; page: Page; badge?: string 
   { icon: Settings,        label: '설정',              page: 'settings' },
 ]
 
+// 클립 pos 기반 구간 세그먼트
+// 각 세그먼트 중심 ≈ 클립 pos (8→17%, 2→25%, 6→36%, 1→47%, 3→60%, 7→70%, 4→82%, 5→88%)
 const TIMELINE_SEGS = [
-  { l:6,  w:4, lv:2 }, { l:15, w:2, lv:1 }, { l:23, w:7, lv:3 },
-  { l:34, w:3, lv:1 }, { l:41, w:5, lv:2 }, { l:52, w:4, lv:3 },
-  { l:61, w:2, lv:1 }, { l:66, w:3, lv:2 }, { l:74, w:3, lv:1 },
-  { l:80, w:4, lv:3 }, { l:88, w:2, lv:1 }, { l:93, w:4, lv:2 },
+  { l:14,  w:4.0, lv:1 },  // clip 8 (score 65)
+  { l:22,  w:5.0, lv:3 },  // clip 2 (score 91)
+  { l:33,  w:3.5, lv:1 },  // clip 6 (score 72)
+  { l:44,  w:6.0, lv:3 },  // clip 1 (score 98) — 가장 넓고 밝음
+  { l:57,  w:4.5, lv:2 },  // clip 3 (score 85)
+  { l:67,  w:3.5, lv:1 },  // clip 7 (score 68)
+  { l:79,  w:4.0, lv:2 },  // clip 4 (score 79)
+  { l:86,  w:3.5, lv:2 },  // clip 5 (score 76)
 ]
 
+// 80-포인트 채팅 반응 파형
+// 각 클립 pos에 피크 배치 (점수 비례): 17%→idx14, 25%→idx20, 36%→idx28
+// 47%→idx37(최대), 60%→idx47, 70%→idx55, 82%→idx65, 88%→idx70
 const WAVE = [
-  0.05,0.07,0.06,0.09,0.08,0.11,0.14,0.12,0.09,0.07,
-  0.14,0.23,0.34,0.44,0.39,0.28,0.19,0.16,0.11,0.09,
-  0.11,0.17,0.27,0.44,0.63,0.80,0.94,1.00,0.89,0.71,
-  0.53,0.37,0.24,0.17,0.21,0.29,0.37,0.31,0.24,0.19,
-  0.17,0.24,0.39,0.53,0.63,0.57,0.47,0.41,0.37,0.31,
-  0.27,0.37,0.49,0.61,0.70,0.66,0.56,0.49,0.44,0.39,
-  0.34,0.29,0.37,0.47,0.53,0.49,0.41,0.34,0.29,0.24,
-  0.21,0.27,0.33,0.41,0.37,0.31,0.27,0.24,0.19,0.16,
+  0.05,0.06,0.07,0.06,0.07,0.09,0.10,0.11,0.12,0.11,
+  0.10,0.14,0.22,0.35,0.45,0.38,0.28,0.18,0.22,0.40,
+  0.85,0.88,0.75,0.60,0.47,0.37,0.42,0.48,0.55,0.50,
+  0.43,0.52,0.63,0.74,0.85,0.93,0.98,1.00,0.95,0.82,
+  0.67,0.55,0.46,0.40,0.48,0.57,0.66,0.78,0.80,0.72,
+  0.61,0.50,0.42,0.37,0.40,0.50,0.52,0.46,0.38,0.33,
+  0.36,0.42,0.50,0.58,0.62,0.65,0.63,0.58,0.56,0.60,
+  0.62,0.58,0.50,0.40,0.32,0.24,0.18,0.13,0.09,0.06,
 ]
 
 const TOTAL_SECS = 7 * 3600 + 3 * 60 + 15 // 07:03:15
@@ -87,6 +97,12 @@ const CLIPS = ALL_CLIPS.slice(0, 4)
 function fmtSecs(s: number) {
   const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60
   return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`
+}
+
+function parseClipPos(timeStr: string) {
+  const toSec = (t: string) => { const [h,m,s]=t.split(':').map(Number); return h*3600+m*60+s }
+  const [a,b] = timeStr.split('–')
+  return { startPct: toSec(a)/TOTAL_SECS*100, endPct: toSec(b)/TOTAL_SECS*100 }
 }
 
 function buildPath(data: number[], w: number, h: number, fill: boolean) {
@@ -384,9 +400,20 @@ function CommonSidebar({ onNavigate }: { onNavigate: (p: Page) => void }) {
       style={{ background:'#0c0c1a' }}>
       {/* Card 1: 라이브 상태 */}
       <div className="bg-white/[0.04] rounded-xl p-3 border border-green-500/25">
-        <div className="flex items-center gap-1.5 mb-1.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse flex-shrink-0"/>
-          <span className="text-green-400 text-[10px] font-bold tracking-wide">LIVE</span>
+        <div className="flex items-center justify-between mb-1.5">
+          <div className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse flex-shrink-0"/>
+            <span className="text-green-400 text-[10px] font-bold tracking-wide">LIVE</span>
+          </div>
+          <a
+            href="https://chzzk.naver.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 px-1.5 py-0.5 rounded-md border border-green-500/30 bg-green-500/10 hover:bg-green-500/20 transition-colors"
+          >
+            <span className="text-green-400/80 text-[8px] font-semibold">바로가기</span>
+            <Link2 size={8} className="text-green-400/60 flex-shrink-0"/>
+          </a>
         </div>
         <div className="text-white/75 text-[11px] font-semibold leading-snug mb-1">
           발로란트 마스터 도전기 EP.12
@@ -532,7 +559,7 @@ function DashboardPage() {
 // ══════════════════════════════════════════════════════════
 // PAGE 2: 하이라이트 (interactive graph + hover sync + modal)
 // ══════════════════════════════════════════════════════════
-function HighlightPage() {
+function HighlightPage({ onNav }: { onNav: (nav: UploadNav) => void }) {
   const [openMenu,     setOpenMenu]     = useState<number | null>(null)
   const [hoveredClip,  setHoveredClip]  = useState<number | null>(null)
   const [graphPos,     setGraphPos]     = useState<number | null>(null)  // 0~1
@@ -542,9 +569,9 @@ function HighlightPage() {
   const waveIdx   = graphPos !== null ? Math.min(79, Math.floor(graphPos * 80)) : 0
   const hoverWave = WAVE[waveIdx]
   const hoverTime = graphPos !== null ? fmtSecs(Math.floor(graphPos * TOTAL_SECS)) : ''
-  const hoverChat = Math.round(hoverWave * 85)
-  const hoverVid  = Math.round(hoverWave * 22)
-  const hoverTotal= hoverChat + hoverVid
+  const hoverChat = Math.round(hoverWave * 80)   // /80점 만점
+  const hoverVid  = Math.round(hoverWave * 20)   // /20점 만점
+  const hoverTotal= hoverChat + hoverVid          // /100점 만점
 
   // 클립 hover 시 그래프·타임라인에 표시할 SVG X (0~800)
   const hClip = hoveredClip !== null ? CLIPS.find(c => c.rank === hoveredClip) : null
@@ -576,38 +603,45 @@ function HighlightPage() {
             </div>
           </div>
 
-          <div className="relative h-6 bg-white/[0.04] rounded overflow-hidden border border-white/[0.06]">
-            {/* 기본 세그먼트 — hover 시 살짝 어둡게 */}
-            {TIMELINE_SEGS.map((s,i) => (
-              <div key={i}
-                className="absolute top-0.5 bottom-0.5 rounded-sm transition-opacity"
-                style={{
-                  left:`${s.l}%`, width:`${s.w}%`,
-                  opacity: hClip ? 0.35 : 1,
-                  background: s.lv===3?'#7c3aed':s.lv===2?'rgba(124,58,237,.55)':'rgba(124,58,237,.28)',
-                  boxShadow: s.lv===3?'0 0 8px rgba(124,58,237,.7)':undefined,
-                }}
-              />
-            ))}
-
-            {/* 클립 hover 시 해당 pos에 글로우 마커 */}
-            {hClip && (
-              <div
-                className="absolute top-0 bottom-0 z-10 pointer-events-none transition-all"
-                style={{
-                  left:`${hClip.pos - 1.2}%`,
-                  width:'2.4%',
-                  background:'#a855f7',
-                  borderRadius:'3px',
-                  boxShadow:'0 0 12px rgba(168,85,247,1), 0 0 24px rgba(124,58,237,0.6)',
-                }}
-              />
-            )}
-          </div>
-
-          <div className="flex justify-between text-[10px] text-white/25 mt-1">
-            {['00:00:00','01:45:00','03:30:00','05:15:00'].map(t => <span key={t}>{t}</span>)}
-            <span className="text-accent-purple/60">07:03:15</span>
+          {/* 그래프와 동일한 flex 구조 — gap-3 + 112px 패널 자리까지 맞춤 */}
+          <div className="flex gap-3 items-start">
+            <div className="flex-1 min-w-0">
+              <div className="flex">
+                <div className="flex-shrink-0" style={{width:'22px'}}/>
+                <div className="flex-1 relative h-6 bg-white/[0.04] rounded overflow-hidden border border-white/[0.06]">
+                  {TIMELINE_SEGS.map((s,i) => (
+                    <div key={i}
+                      className="absolute top-0.5 bottom-0.5 rounded-sm transition-opacity"
+                      style={{
+                        left:`${s.l}%`, width:`${s.w}%`,
+                        opacity: hClip ? 0.35 : 1,
+                        background: s.lv===3?'#7c3aed':s.lv===2?'rgba(124,58,237,.55)':'rgba(124,58,237,.28)',
+                        boxShadow: s.lv===3?'0 0 8px rgba(124,58,237,.7)':undefined,
+                      }}
+                    />
+                  ))}
+                  {hClip && (() => {
+                    const { startPct, endPct } = parseClipPos(hClip.time)
+                    const w = Math.max(endPct - startPct, 0.8)
+                    return (
+                      <div className="absolute top-0 bottom-0 z-10 pointer-events-none transition-all"
+                        style={{
+                          left:`${startPct}%`, width:`${w}%`,
+                          background:'#a855f7', borderRadius:'3px',
+                          boxShadow:'0 0 12px rgba(168,85,247,1), 0 0 24px rgba(124,58,237,0.6)',
+                        }}
+                      />
+                    )
+                  })()}
+                </div>
+              </div>
+              <div className="flex justify-between text-[10px] text-white/25 mt-1" style={{paddingLeft:'22px'}}>
+                {['00:00:00','01:45:00','03:30:00','05:15:00'].map(t => <span key={t}>{t}</span>)}
+                <span className="text-accent-purple/60">07:03:15</span>
+              </div>
+            </div>
+            {/* 그래프 패널 자리 확보 — 가로길이 완전 일치 */}
+            <div className="flex-shrink-0" style={{width:'112px'}}/>
           </div>
         </Card>
 
@@ -706,15 +740,19 @@ function HighlightPage() {
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <span className="text-white/40 text-[9px]">채팅 반응</span>
-                  <span className="text-cyan-400 text-[10px] font-bold">{hoverChat}점</span>
+                  <span className="text-cyan-400 text-[10px] font-bold">
+                    {hoverChat}<span className="text-white/25 text-[8px] font-normal">/80</span>
+                  </span>
                 </div>
                 <div className="h-0.5 bg-white/[0.07] rounded-full overflow-hidden">
                   <div className="h-full bg-cyan-400/55 rounded-full transition-all duration-75"
-                    style={{width:`${hoverChat}%`}}/>
+                    style={{width:`${hoverChat / 80 * 100}%`}}/>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-white/40 text-[9px]">영상 분석</span>
-                  <span className="text-purple-300 text-[10px] font-bold">{hoverVid}점</span>
+                  <span className="text-purple-300 text-[10px] font-bold">
+                    {hoverVid}<span className="text-white/25 text-[8px] font-normal">/20</span>
+                  </span>
                 </div>
                 <div className="h-0.5 bg-white/[0.07] rounded-full overflow-hidden">
                   <div className="h-full bg-purple-400/55 rounded-full transition-all duration-75"
@@ -723,7 +761,9 @@ function HighlightPage() {
               </div>
               <div className="mt-2 pt-1.5 border-t border-white/[0.07] flex items-center justify-between">
                 <span className="text-white/45 text-[9px]">종합</span>
-                <span className="text-accent-purple text-[12px] font-bold">{hoverTotal}점</span>
+                <span className="text-accent-purple text-[12px] font-bold">
+                  {hoverTotal}<span className="text-white/25 text-[9px] font-normal">/100</span>
+                </span>
               </div>
             </div>
           </div>
@@ -787,12 +827,14 @@ function HighlightPage() {
                       {openMenu === clip.rank && (
                         <div className="absolute right-0 top-full mt-0.5 z-30 bg-[#1a1a2e] border border-white/[0.12] rounded-lg shadow-2xl min-w-[108px] py-1">
                           {[
-                            { icon:RotateCcw, label:'이 클립 재분석', color:'text-white/60' },
-                            { icon:Upload,    label:'업로드',         color:'text-white/60' },
-                            { icon:Download,  label:'내보내기',       color:'text-white/60' },
-                            { icon:Trash2,    label:'삭제',           color:'text-red-400/70' },
-                          ].map(({ icon:Icon, label, color }) => (
-                            <button key={label} className={`flex items-center gap-2 w-full px-3 py-1.5 text-[10px] ${color} hover:bg-white/[0.05] transition-colors`}>
+                            { icon:RotateCcw, label:'이 클립 재분석', color:'text-white/60',    nav: null },
+                            { icon:Upload,    label:'업로드',         color:'text-white/60',    nav: 'upload' as const },
+                            { icon:Download,  label:'내보내기',       color:'text-white/60',    nav: 'export' as const },
+                            { icon:Trash2,    label:'삭제',           color:'text-red-400/70',  nav: null },
+                          ].map(({ icon:Icon, label, color, nav }) => (
+                            <button key={label}
+                              onClick={() => { if (nav) { setOpenMenu(null); onNav({ rank: clip.rank, tab: nav }) } }}
+                              className={`flex items-center gap-2 w-full px-3 py-1.5 text-[10px] ${color} hover:bg-white/[0.05] transition-colors`}>
                               <Icon size={9}/>{label}
                             </button>
                           ))}
@@ -825,21 +867,31 @@ function HighlightPage() {
 
                   {/* 타임라인 바 */}
                   <div>
-                    <div className="flex justify-between text-[7px] text-white/20 mb-0.5">
-                      <span>0:00</span>
-                      <span className="text-accent-purple/55">{clip.time.split('–')[0]}</span>
-                      <span>7:03</span>
-                    </div>
-                    <div className="relative h-1 bg-white/[0.08] rounded-full">
-                      <div className="absolute inset-y-0 left-0 rounded-full bg-white/[0.05]" style={{width:`${clip.pos}%`}}/>
-                      <div className="absolute inset-y-0 rounded-full bg-accent-purple/70"
-                        style={{left:`${Math.max(0,clip.pos-0.3)}%`, width:'1.2%', boxShadow:'0 0 4px rgba(124,58,237,.9)'}}/>
-                      <div className="absolute top-1/2 w-1.5 h-1.5 rounded-full bg-accent-purple"
-                        style={{left:`${clip.pos}%`, transform:'translate(-50%,-50%)',
-                          boxShadow: hoveredClip===clip.rank
-                            ? '0 0 8px rgba(168,85,247,1)'
-                            : '0 0 5px rgba(124,58,237,1)'}}/>
-                    </div>
+                    {(() => {
+                      const { startPct, endPct } = parseClipPos(clip.time)
+                      const segW = Math.max(endPct - startPct, 0.9)
+                      return (
+                        <>
+                          <div className="flex justify-between text-[7px] text-white/20 mb-0.5">
+                            <span>0:00</span>
+                            <span className="text-accent-purple/55">{clip.time.split('–')[0]}</span>
+                            <span>7:03</span>
+                          </div>
+                          <div className="relative h-1 bg-white/[0.08] rounded-full">
+                            <div className="absolute inset-y-0 left-0 rounded-full bg-white/[0.05]"
+                              style={{width:`${startPct}%`}}/>
+                            <div className="absolute inset-y-0 rounded-full bg-accent-purple/75"
+                              style={{left:`${startPct}%`,width:`${segW}%`,boxShadow:'0 0 5px rgba(124,58,237,.9)'}}/>
+                            <div className="absolute top-1/2 w-1.5 h-1.5 rounded-full bg-accent-purple"
+                              style={{left:`${startPct}%`,transform:'translate(-50%,-50%)',
+                                boxShadow:hoveredClip===clip.rank?'0 0 8px rgba(168,85,247,1)':'0 0 4px rgba(124,58,237,1)'}}/>
+                            <div className="absolute top-1/2 w-1.5 h-1.5 rounded-full bg-cyan-400"
+                              style={{left:`${startPct+segW}%`,transform:'translate(-50%,-50%)',
+                                boxShadow:hoveredClip===clip.rank?'0 0 8px rgba(6,182,212,1)':'0 0 4px rgba(6,182,212,.8)'}}/>
+                          </div>
+                        </>
+                      )
+                    })()}
                   </div>
                 </div>
               </div>
@@ -985,7 +1037,7 @@ function AnalysisPage() {
 // ══════════════════════════════════════════════════════════
 // PAGE 4: 클립 관리 (클릭 → 상세 모달)
 // ══════════════════════════════════════════════════════════
-function ClipsPage() {
+function ClipsPage({ onNav }: { onNav: (nav: UploadNav) => void }) {
   const [openFilter,   setOpenFilter]   = useState<string | null>(null)
   const [openMenu,     setOpenMenu]     = useState<number | null>(null)
   const [activeFilters,setActiveFilters]= useState<Record<string,string>>({})
@@ -1069,11 +1121,11 @@ function ClipsPage() {
                   <span className="text-white/80 text-[9px] font-bold">{clip.rank}</span>
                 </div>
                 <div className="absolute bottom-1 left-1 bg-black/60 text-white/65 text-[8px] px-1 py-px rounded">{clip.dur}</div>
-                <div className="absolute bottom-1 right-1 bg-accent-purple text-white text-[8px] font-bold px-1 py-px rounded-full">{clip.score}점</div>
               </div>
 
               {/* Info */}
               <div className="px-2 pt-1.5 pb-2 flex flex-col gap-1">
+                {/* 제목 + ··· */}
                 <div className="flex items-center gap-1">
                   <div className="text-white/80 text-[10px] font-semibold truncate flex-1">{clip.title}</div>
                   <div className="relative flex-shrink-0" onClick={e => e.stopPropagation()}>
@@ -1086,12 +1138,14 @@ function ClipsPage() {
                     {openMenu === clip.rank && (
                       <div className="absolute right-0 top-full mt-0.5 z-30 bg-[#1a1a2e] border border-white/[0.12] rounded-lg shadow-2xl min-w-[108px] py-1">
                         {[
-                          { icon:Upload,    label:'업로드',         color:'text-white/60' },
-                          { icon:Download,  label:'내보내기',       color:'text-white/60' },
-                          { icon:RotateCcw, label:'이 클립 재분석', color:'text-white/60' },
-                          { icon:Trash2,    label:'삭제',           color:'text-red-400/70' },
-                        ].map(({ icon:Icon, label, color }) => (
-                          <button key={label} className={`flex items-center gap-2 w-full px-3 py-1.5 text-[10px] ${color} hover:bg-white/[0.05] transition-colors`}>
+                          { icon:Upload,    label:'업로드',         color:'text-white/60',   nav: 'upload' as const },
+                          { icon:Download,  label:'내보내기',       color:'text-white/60',   nav: 'export' as const },
+                          { icon:RotateCcw, label:'이 클립 재분석', color:'text-white/60',   nav: null },
+                          { icon:Trash2,    label:'삭제',           color:'text-red-400/70', nav: null },
+                        ].map(({ icon:Icon, label, color, nav }) => (
+                          <button key={label}
+                            onClick={() => { if (nav) { closeAll(); onNav({ rank: clip.rank, tab: nav }) } }}
+                            className={`flex items-center gap-2 w-full px-3 py-1.5 text-[10px] ${color} hover:bg-white/[0.05] transition-colors`}>
                             <Icon size={9}/>{label}
                           </button>
                         ))}
@@ -1099,16 +1153,19 @@ function ClipsPage() {
                     )}
                   </div>
                 </div>
+                {/* 태그 */}
                 <div className="flex flex-wrap gap-1">
                   {clip.tags.map(t => (
                     <span key={t} className="text-[8px] text-accent-purple/70 bg-accent-purple/10 px-1.5 py-px rounded-full">{t}</span>
                   ))}
                 </div>
+                {/* 시간 범위 */}
                 <div className="flex items-center gap-1 text-[8px]">
                   <span className="text-white/40">{clip.time.split('–')[0]}</span>
                   <span className="text-white/20">~</span>
                   <span className="text-white/40">{clip.time.split('–')[1]}</span>
                 </div>
+                {/* 날짜 · 플랫폼 */}
                 <div className="flex items-center gap-1">
                   <span className="text-white/25 text-[8px]">{clip.date}</span>
                   <span className="text-white/15 text-[8px]">·</span>
@@ -1116,20 +1173,35 @@ function ClipsPage() {
                     clip.platform==='치지직' ? 'text-green-400/70 bg-green-500/10' : 'text-orange-400/70 bg-orange-500/10'
                   }`}>{clip.platform}</span>
                 </div>
-                <div>
-                  <div className="flex justify-between text-[7px] text-white/20 mb-0.5">
-                    <span>0:00</span>
-                    <span className="text-accent-purple/55">{clip.time.split('–')[0]}</span>
-                    <span>7:03</span>
-                  </div>
-                  <div className="relative h-1 bg-white/[0.08] rounded-full">
-                    <div className="absolute inset-y-0 left-0 rounded-full bg-white/[0.05]" style={{width:`${clip.pos}%`}}/>
-                    <div className="absolute inset-y-0 rounded-full bg-accent-purple/70"
-                      style={{left:`${Math.max(0,clip.pos-0.3)}%`, width:'1.2%', boxShadow:'0 0 4px rgba(124,58,237,.9)'}}/>
-                    <div className="absolute top-1/2 w-1.5 h-1.5 rounded-full bg-accent-purple"
-                      style={{left:`${clip.pos}%`, transform:'translate(-50%,-50%)', boxShadow:'0 0 5px rgba(124,58,237,1)'}}/>
-                  </div>
+                {/* 종합 점수 */}
+                <div className="flex items-center justify-between">
+                  <span className="text-white/25 text-[8px]">종합 점수</span>
+                  <span className="font-bold text-[10px] text-accent-purple/80 group-hover:text-accent-purple transition-colors">{clip.score}점</span>
                 </div>
+                {/* 타임라인 바 — start/end 두 점 */}
+                {(() => {
+                  const { startPct, endPct } = parseClipPos(clip.time)
+                  const segW = Math.max(endPct - startPct, 0.9)
+                  return (
+                    <div>
+                      <div className="flex justify-between text-[7px] text-white/20 mb-0.5">
+                        <span>0:00</span>
+                        <span className="text-accent-purple/55">{clip.time.split('–')[0]}</span>
+                        <span>7:03</span>
+                      </div>
+                      <div className="relative h-1 bg-white/[0.08] rounded-full">
+                        <div className="absolute inset-y-0 left-0 rounded-full bg-white/[0.05]"
+                          style={{width:`${startPct}%`}}/>
+                        <div className="absolute inset-y-0 rounded-full bg-accent-purple/75"
+                          style={{left:`${startPct}%`,width:`${segW}%`,boxShadow:'0 0 5px rgba(124,58,237,.9)'}}/>
+                        <div className="absolute top-1/2 w-1.5 h-1.5 rounded-full bg-accent-purple"
+                          style={{left:`${startPct}%`,transform:'translate(-50%,-50%)',boxShadow:'0 0 4px rgba(124,58,237,1)'}}/>
+                        <div className="absolute top-1/2 w-1.5 h-1.5 rounded-full bg-cyan-400"
+                          style={{left:`${startPct+segW}%`,transform:'translate(-50%,-50%)',boxShadow:'0 0 4px rgba(6,182,212,.8)'}}/>
+                      </div>
+                    </div>
+                  )
+                })()}
               </div>
             </div>
           ))}
@@ -1148,7 +1220,7 @@ function ClipsPage() {
 // ══════════════════════════════════════════════════════════
 // PAGE 5: 업로드 & 내보내기
 // ══════════════════════════════════════════════════════════
-function UploadPage() {
+function UploadPage({ initialNav }: { initialNav: UploadNav | null }) {
   const [activeTab,         setActiveTab]         = useState<'upload'|'export'>('upload')
   const [selectedClips,     setSelectedClips]     = useState(new Set<number>([1]))
   const [clipTitles,        setClipTitles]        = useState<Record<number,number>>({1:0})
@@ -1157,6 +1229,19 @@ function UploadPage() {
   const [exportRatio,       setExportRatio]       = useState('16:9')
   const [exportSelected,    setExportSelected]    = useState(new Set<number>([1,2]))
   const [exportFormat,      setExportFormat]      = useState('MP4')
+
+  // 다른 페이지 ··· 메뉴에서 이동 시 클립 자동 선택
+  useEffect(() => {
+    if (!initialNav) return
+    const { rank, tab } = initialNav
+    setActiveTab(tab)
+    if (tab === 'upload') {
+      setSelectedClips(new Set([rank]))
+      setClipTitles({ [rank]: 0 })
+    } else {
+      setExportSelected(new Set([rank]))
+    }
+  }, [initialNav])
 
   const platforms = [
     { name:'YouTube', color:'#ff0000', icon:'▶', connected:true  },
@@ -2034,14 +2119,20 @@ function SettingsPage() {
 // ══════════════════════════════════════════════════════════
 export default function LiveDashboard() {
   const { ref, inView } = useInView()
-  const [activePage, setActivePage] = useState<Page>('highlight')
+  const [activePage,  setActivePage]  = useState<Page>('highlight')
+  const [uploadNav,   setUploadNav]   = useState<UploadNav | null>(null)
+
+  const navigateToUpload = (nav: UploadNav) => {
+    setUploadNav(nav)
+    setActivePage('upload')
+  }
 
   const pageComponents: Record<Page, React.ReactNode> = {
     dashboard: <DashboardPage />,
-    highlight: <HighlightPage />,
+    highlight: <HighlightPage onNav={navigateToUpload} />,
     analysis:  <AnalysisPage />,
-    clips:     <ClipsPage />,
-    upload:    <UploadPage />,
+    clips:     <ClipsPage onNav={navigateToUpload} />,
+    upload:    <UploadPage initialNav={uploadNav} />,
     broadcast: <BroadcastPage />,
     settings:  <SettingsPage />,
   }
