@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Menu, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
-const GOOGLE_FORM_LINK = 'YOUR_GOOGLE_FORM_LINK'
+const GOOGLE_FORM_LINK = 'https://docs.google.com/forms/d/e/1FAIpQLSf56_6z4cvxvFaRmbgW5zMxkxAYmG8rKBFBWeB4Be-ngUlJqA/viewform?usp=sharing&ouid=107121737297056392953'
 
 const links = [
   { label: '서비스 소개', href: '#서비스소개' },

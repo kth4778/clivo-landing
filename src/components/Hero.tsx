@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 
-const GOOGLE_FORM_LINK = 'YOUR_GOOGLE_FORM_LINK'
+const GOOGLE_FORM_LINK = 'https://docs.google.com/forms/d/e/1FAIpQLSf56_6z4cvxvFaRmbgW5zMxkxAYmG8rKBFBWeB4Be-ngUlJqA/viewform?usp=sharing&ouid=107121737297056392953'
 
 const fadeUp = {
   hidden: { opacity: 0, y: 28 },
@@ -68,7 +68,7 @@ export default function Hero() {
           variants={fadeUp}
           initial="hidden"
           animate="show"
-          className="text-text-muted text-base md:text-lg leading-relaxed max-w-xl"
+          className="text-text-muted text-base md:text-lg leading-relaxed max-w-xl break-keep"
           style={{ lineHeight: 1.75 }}
         >
           AI가 실시간으로 채팅과 영상을 분석해 하이라이트 클립을 자동 감지·추출·업로드합니다.

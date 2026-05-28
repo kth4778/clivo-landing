@@ -2,7 +2,7 @@ import { motion } from 'framer-motion'
 import { ArrowRight, Gift, Bell } from 'lucide-react'
 import { useInView } from '@/hooks/useInView'
 
-const GOOGLE_FORM_LINK = 'YOUR_GOOGLE_FORM_LINK'
+const GOOGLE_FORM_LINK = 'https://docs.google.com/forms/d/e/1FAIpQLSf56_6z4cvxvFaRmbgW5zMxkxAYmG8rKBFBWeB4Be-ngUlJqA/viewform?usp=sharing&ouid=107121737297056392953'
 
 export default function CTA() {
   const { ref, inView } = useInView()

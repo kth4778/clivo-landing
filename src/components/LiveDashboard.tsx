@@ -13,17 +13,17 @@ import img34 from '@/assets/image 34.png'
 const THUMB_IMGS = [img27, img28, img29, img30, img31, img32, img33, img34]
 
 import {
-  LayoutDashboard, Zap, BarChart2, Film, Upload,
-  Radio, Settings, Download, Bell, HelpCircle,
+  Zap, BarChart2, Film, Upload,
+  Settings, Download, Bell, HelpCircle,
   ChevronDown, Users, Star, Search,
   Play, Filter, Wifi, Calendar,
-  Eye, MessageSquare, Link2, Shield,
+  MessageSquare, Link2, TrendingUp,
   MoreHorizontal, RotateCcw, Trash2,
-  Pencil, X,
+  Pencil, X, Shield,
 } from 'lucide-react'
 
 // ── Types ─────────────────────────────────────────────────
-type Page = 'dashboard' | 'highlight' | 'analysis' | 'clips' | 'upload' | 'broadcast' | 'settings'
+type Page = 'highlight' | 'analysis' | 'clips' | 'upload' | 'performance' | 'settings'
 type UploadNav = { rank: number; tab: 'upload' | 'export' }
 
 type Clip = {
@@ -38,17 +38,17 @@ type Clip = {
   pos: number
   date: string
   platform: string
+  genre: string
 }
 
 // ── Mock data ─────────────────────────────────────────────
 const NAV: { icon: React.ElementType; label: string; page: Page; badge?: string }[] = [
-  { icon: LayoutDashboard, label: '대시보드',          page: 'dashboard' },
-  { icon: Zap,             label: '하이라이트',        page: 'highlight', badge: 'Beta' },
-  { icon: BarChart2,       label: '실시간 분석',       page: 'analysis' },
-  { icon: Film,            label: '클립 관리',         page: 'clips' },
-  { icon: Upload,          label: '업로드 & 내보내기', page: 'upload' },
-  { icon: Radio,           label: '방송 관리',         page: 'broadcast' },
-  { icon: Settings,        label: '설정',              page: 'settings' },
+  { icon: Zap,         label: '하이라이트',        page: 'highlight',   badge: 'Beta' },
+  { icon: BarChart2,   label: '실시간 분석',        page: 'analysis' },
+  { icon: Film,        label: '방송 & 클립',        page: 'clips' },
+  { icon: Upload,      label: '업로드 & 내보내기',  page: 'upload' },
+  { icon: TrendingUp,  label: '성과 분석',          page: 'performance' },
+  { icon: Settings,    label: '설정',               page: 'settings' },
 ]
 
 // 클립 pos 기반 구간 세그먼트
@@ -81,14 +81,14 @@ const WAVE = [
 const TOTAL_SECS = 7 * 3600 + 3 * 60 + 15 // 07:03:15
 
 const ALL_CLIPS: Clip[] = [
-  { rank:1, title:'극적인 역전 순간!',   time:'03:18:45–03:21:59', dur:'03:21', score:98, chatScore:81, videoScore:17, tags:['#역전','#채팅폭발'],    pos:47, date:'05.27', platform:'치지직' },
-  { rank:2, title:'보조킬 완벽 타이밍', time:'01:47:22–01:50:10', dur:'02:48', score:91, chatScore:72, videoScore:19, tags:['#보스전','#완벽타이밍'], pos:25, date:'05.27', platform:'치지직' },
-  { rank:3, title:'연속 킬 폭발!',      time:'04:12:33–04:14:48', dur:'02:15', score:85, chatScore:68, videoScore:17, tags:['#연속킬','#스킬연계'],   pos:60, date:'05.27', platform:'치지직' },
-  { rank:4, title:'전설 아이템 획득!',  time:'05:45:11–05:47:09', dur:'01:58', score:79, chatScore:62, videoScore:17, tags:['#전설템','#축하'],       pos:82, date:'05.27', platform:'치지직' },
-  { rank:5, title:'화려한 콤보 연계',   time:'06:12:04–06:14:11', dur:'02:07', score:76, chatScore:59, videoScore:17, tags:['#콤보'],                 pos:88, date:'05.25', platform:'치지직' },
-  { rank:6, title:'아슬아슬한 생존',    time:'02:33:22–02:35:00', dur:'01:38', score:72, chatScore:57, videoScore:15, tags:['#생존'],                 pos:36, date:'05.25', platform:'치지직' },
-  { rank:7, title:'팀원 구조 성공',     time:'04:58:10–05:00:25', dur:'02:15', score:68, chatScore:52, videoScore:16, tags:['#팀플'],                 pos:70, date:'05.23', platform:'SOOP'  },
-  { rank:8, title:'예상치 못한 반전',   time:'01:10:55–01:13:02', dur:'02:07', score:65, chatScore:49, videoScore:16, tags:['#반전'],                 pos:17, date:'05.23', platform:'SOOP'  },
+  { rank:1, title:'극적인 역전 순간!',   time:'03:18:45–03:21:59', dur:'03:21', score:98, chatScore:81, videoScore:17, tags:['#역전','#채팅폭발'],    pos:47, date:'05.27', platform:'치지직', genre:'발로란트'     },
+  { rank:2, title:'보조킬 완벽 타이밍', time:'01:47:22–01:50:10', dur:'02:48', score:91, chatScore:72, videoScore:19, tags:['#보스전','#완벽타이밍'], pos:25, date:'05.27', platform:'치지직', genre:'발로란트'     },
+  { rank:3, title:'연속 킬 폭발!',      time:'04:12:33–04:14:48', dur:'02:15', score:85, chatScore:68, videoScore:17, tags:['#연속킬','#스킬연계'],   pos:60, date:'05.27', platform:'치지직', genre:'발로란트'     },
+  { rank:4, title:'전설 아이템 획득!',  time:'05:45:11–05:47:09', dur:'01:58', score:79, chatScore:62, videoScore:17, tags:['#전설템','#축하'],       pos:82, date:'05.27', platform:'치지직', genre:'발로란트'     },
+  { rank:5, title:'화려한 콤보 연계',   time:'06:12:04–06:14:11', dur:'02:07', score:76, chatScore:59, videoScore:17, tags:['#콤보'],                 pos:88, date:'05.25', platform:'치지직', genre:'기타'         },
+  { rank:6, title:'아슬아슬한 생존',    time:'02:33:22–02:35:00', dur:'01:38', score:72, chatScore:57, videoScore:15, tags:['#생존'],                 pos:36, date:'05.25', platform:'치지직', genre:'기타'         },
+  { rank:7, title:'팀원 구조 성공',     time:'04:58:10–05:00:25', dur:'02:15', score:68, chatScore:52, videoScore:16, tags:['#팀플'],                 pos:70, date:'05.23', platform:'SOOP',   genre:'리그오브레전드' },
+  { rank:8, title:'예상치 못한 반전',   time:'01:10:55–01:13:02', dur:'02:07', score:65, chatScore:49, videoScore:16, tags:['#반전'],                 pos:17, date:'05.23', platform:'SOOP',   genre:'리그오브레전드' },
 ]
 
 const CLIPS = ALL_CLIPS.slice(0, 4)
@@ -145,11 +145,16 @@ function Card({ className='', children }: { className?: string; children: React.
 // CLIP DETAIL MODAL
 // ══════════════════════════════════════════════════════════
 function ClipDetailModal({ clip, onClose }: { clip: Clip; onClose: () => void }) {
-  const [editingTitle, setEditingTitle] = useState(false)
-  const [title,        setTitle]        = useState(clip.title)
-  const [tags,         setTags]         = useState([...clip.tags])
-  const [newTag,       setNewTag]       = useState('')
-  const [selTitle,     setSelTitle]     = useState(0)
+  const [editingTitle,    setEditingTitle]    = useState(false)
+  const [title,           setTitle]           = useState(clip.title)
+  const [tags,            setTags]            = useState([...clip.tags])
+  const [newTag,          setNewTag]          = useState('')
+  const [reanalyzeTypes,  setReanalyzeTypes]  = useState(new Set(['채팅 폭발']))
+  const [chatWeight,      setChatWeight]      = useState(clip.chatScore > clip.videoScore * 4 ? 75 : 60)
+  const [reanalyzeNote,   setReanalyzeNote]   = useState('')
+  const [analyzing,       setAnalyzing]       = useState(false)
+  const [analyzeProgress, setAnalyzeProgress] = useState(0)
+  const [analyzeDone,     setAnalyzeDone]     = useState(false)
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
@@ -157,13 +162,29 @@ function ClipDetailModal({ clip, onClose }: { clip: Clip; onClose: () => void })
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
 
-  const aiTitles = [
-    `${clip.title} — 발로란트 EP.12 하이라이트`,
-    `이 순간이 바로 클립각! ${clip.title}`,
-    `BJ 던파파이터 ${clip.date} 방송 명장면`,
-  ]
+  const toggleType = (t: string) => {
+    setReanalyzeTypes(prev => {
+      const n = new Set(prev)
+      n.has(t) ? n.delete(t) : n.add(t)
+      return n.size === 0 ? prev : n   // 최소 1개 유지
+    })
+  }
 
-  const applyTitle = (t: string) => { setTitle(t); setSelTitle(aiTitles.indexOf(t)); setEditingTitle(false) }
+  const runAnalysis = () => {
+    setAnalyzing(true); setAnalyzeDone(false); setAnalyzeProgress(0)
+    let p = 0
+    const id = setInterval(() => {
+      p += Math.random() * 18 + 4
+      if (p >= 100) {
+        clearInterval(id)
+        setAnalyzeProgress(100)
+        setAnalyzing(false)
+        setAnalyzeDone(true)
+      } else {
+        setAnalyzeProgress(Math.min(p, 98))
+      }
+    }, 180)
+  }
 
   return (
     <div
@@ -260,121 +281,175 @@ function ClipDetailModal({ clip, onClose }: { clip: Clip; onClose: () => void })
           </div>
 
           {/* ── Right column ── */}
-          <div className="flex-1 p-4 flex flex-col gap-3 min-w-0">
-            {/* Title */}
+          <div className="flex-1 p-4 flex flex-col gap-2.5 min-w-0">
+
+            {/* 제목 */}
             <div>
-              <div className="text-white/30 text-[10px] mb-1.5">클립 제목</div>
+              <div className="text-white/30 text-[10px] mb-1">클립 제목</div>
               {editingTitle ? (
                 <div className="flex gap-2">
-                  <input
-                    value={title}
-                    onChange={e => setTitle(e.target.value)}
-                    autoFocus
-                    className="flex-1 bg-white/[0.05] border border-accent-purple/50 rounded-lg px-3 py-1.5 text-white/80 text-sm outline-none focus:border-accent-purple"
-                  />
-                  <button
-                    onClick={() => setEditingTitle(false)}
-                    className="text-[10px] text-accent-purple border border-accent-purple/40 rounded-lg px-3 hover:bg-accent-purple/10 transition-colors"
-                  >저장</button>
+                  <input value={title} onChange={e => setTitle(e.target.value)} autoFocus
+                    className="flex-1 bg-white/[0.05] border border-accent-purple/50 rounded-lg px-3 py-1.5 text-white/80 text-sm outline-none focus:border-accent-purple"/>
+                  <button onClick={() => setEditingTitle(false)}
+                    className="text-[10px] text-accent-purple border border-accent-purple/40 rounded-lg px-3 hover:bg-accent-purple/10 transition-colors">저장</button>
                 </div>
               ) : (
                 <div className="flex items-center gap-2 group">
                   <span className="text-white/85 text-sm font-semibold leading-snug">{title}</span>
-                  <button
-                    onClick={() => setEditingTitle(true)}
-                    className="text-white/20 hover:text-white/55 opacity-0 group-hover:opacity-100 transition-all flex-shrink-0"
-                  >
+                  <button onClick={() => setEditingTitle(true)}
+                    className="text-white/20 hover:text-white/55 opacity-0 group-hover:opacity-100 transition-all flex-shrink-0">
                     <Pencil size={11}/>
                   </button>
                 </div>
               )}
             </div>
 
-            {/* Info grid */}
-            <div className="grid grid-cols-2 gap-2">
-              {[
-                ['구간', clip.time.replace('–',' ~ ')],
-                ['길이', clip.dur],
-                ['방송', clip.date],
-                ['플랫폼', clip.platform],
-              ].map(([l,v]) => (
-                <div key={l} className="bg-white/[0.03] rounded-lg px-3 py-2">
-                  <div className="text-white/25 text-[9px] mb-0.5">{l}</div>
-                  <div className={`text-[11px] font-semibold ${
-                    l==='플랫폼'
-                      ? clip.platform==='치지직' ? 'text-green-400' : 'text-orange-400'
-                      : 'text-white/65'
-                  }`}>{v}</div>
-                </div>
-              ))}
-            </div>
-
-            {/* Tags */}
+            {/* 태그 */}
             <div>
-              <div className="text-white/30 text-[10px] mb-1.5">태그</div>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="text-white/30 text-[10px] mb-1">태그</div>
+              <div className="flex flex-wrap gap-1">
                 {tags.map((tag, i) => (
-                  <span key={tag+i} className="flex items-center gap-1 text-[10px] text-accent-purple/80 bg-accent-purple/15 border border-accent-purple/25 px-2 py-0.5 rounded-full">
+                  <span key={tag+i} className="flex items-center gap-1 text-[9px] text-accent-purple/80 bg-accent-purple/15 border border-accent-purple/25 px-1.5 py-0.5 rounded-full">
                     {tag}
-                    <button
-                      onClick={() => setTags(t => t.filter((_,j) => j!==i))}
-                      className="text-white/30 hover:text-white/70 ml-0.5 leading-none"
-                    >×</button>
+                    <button onClick={() => setTags(t => t.filter((_,j) => j!==i))}
+                      className="text-white/30 hover:text-white/70 leading-none">×</button>
                   </span>
                 ))}
-                <div className="flex items-center bg-white/[0.04] border border-white/[0.1] rounded-full px-2.5 py-0.5">
-                  <input
-                    value={newTag}
-                    onChange={e => setNewTag(e.target.value)}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter' && newTag.trim()) {
-                        setTags(t => [...t, newTag.trim().startsWith('#') ? newTag.trim() : '#'+newTag.trim()])
-                        setNewTag('')
-                      }
-                    }}
-                    placeholder="+ 태그 추가"
-                    className="bg-transparent text-white/40 text-[10px] outline-none w-16 placeholder:text-white/20"
-                  />
+                <div className="flex items-center bg-white/[0.04] border border-white/[0.1] rounded-full px-2 py-0.5">
+                  <input value={newTag} onChange={e => setNewTag(e.target.value)}
+                    onKeyDown={e => { if (e.key==='Enter' && newTag.trim()) { setTags(t => [...t, newTag.trim().startsWith('#')?newTag.trim():'#'+newTag.trim()]); setNewTag('') }}}
+                    placeholder="+ 추가" className="bg-transparent text-white/40 text-[9px] outline-none w-12 placeholder:text-white/20"/>
                 </div>
               </div>
             </div>
 
-            {/* AI title suggestions */}
-            <div>
-              <div className="flex items-center gap-2 mb-1.5">
-                <span className="text-white/30 text-[10px]">AI 제목 추천</span>
-                <span className="text-[8px] bg-accent-purple/20 text-accent-purple px-1.5 py-px rounded-full">Beta</span>
+            {/* 구분선 */}
+            <div className="border-t border-white/[0.06]"/>
+
+            {/* ── 재분석 설정 ── */}
+            <div className="flex-1 flex flex-col gap-2.5 min-h-0">
+              <div className="flex items-center gap-2">
+                <RotateCcw size={11} className="text-accent-purple/80"/>
+                <span className="text-white/65 text-[11px] font-semibold">재분석 설정</span>
+                <span className="text-[8px] bg-accent-purple/20 text-accent-purple px-1.5 py-px rounded-full ml-auto">Beta</span>
               </div>
-              <div className="space-y-1">
-                {aiTitles.map((t, i) => (
-                  <button key={i}
-                    onClick={() => applyTitle(t)}
-                    className={`w-full text-left text-[10px] p-2 rounded-lg border transition-all ${
-                      selTitle === i
-                        ? 'border-accent-purple/45 bg-accent-purple/10 text-white/75'
-                        : 'border-white/[0.06] bg-white/[0.02] text-white/40 hover:bg-white/[0.05] hover:text-white/60'
-                    }`}
-                  >
-                    {t}
+
+              {/* 감지 유형 */}
+              <div>
+                <div className="text-white/30 text-[9px] mb-1.5">감지 유형 <span className="text-white/20">(중복 선택 가능)</span></div>
+                <div className="flex flex-wrap gap-1.5">
+                  {['채팅 폭발','액션 장면','반전 순간','감정 반응','킬/클러치'].map(t => (
+                    <button key={t} onClick={() => toggleType(t)}
+                      className={`text-[9px] px-2 py-1 rounded-lg border transition-all ${
+                        reanalyzeTypes.has(t)
+                          ? 'text-accent-purple border-accent-purple/50 bg-accent-purple/15 font-semibold'
+                          : 'text-white/35 border-white/[0.08] hover:border-white/20 hover:text-white/55'
+                      }`}>
+                      {reanalyzeTypes.has(t) ? '✓ ' : ''}{t}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 가중치 슬라이더 */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-white/30 text-[9px]">분석 가중치</span>
+                  <div className="flex items-center gap-1 text-[9px]">
+                    <span className="text-cyan-400/80 font-semibold">채팅 {chatWeight}%</span>
+                    <span className="text-white/20">·</span>
+                    <span className="text-purple-300/80 font-semibold">영상 {100-chatWeight}%</span>
+                  </div>
+                </div>
+                {/* 슬라이더 트랙 + 드래그 핸들 */}
+                <div className="relative h-5 flex items-center">
+                  {/* 트랙 배경 */}
+                  <div className="w-full h-1.5 rounded-full" style={{background:'rgba(255,255,255,0.07)'}}/>
+                  {/* 채워진 부분 */}
+                  <div className="absolute left-0 h-1.5 rounded-full pointer-events-none"
+                    style={{width:`${chatWeight}%`, background:'linear-gradient(to right,#06b6d4bb,#a855f7bb)'}}/>
+                  {/* 드래그 핸들 (dot) */}
+                  <div className="absolute w-4 h-4 rounded-full pointer-events-none transition-transform"
+                    style={{
+                      left:`${chatWeight}%`,
+                      transform:'translateX(-50%)',
+                      background:'white',
+                      border:'2px solid #7c3aed',
+                      boxShadow:'0 0 0 3px rgba(124,58,237,0.25), 0 0 8px rgba(124,58,237,0.6)',
+                    }}/>
+                  {/* 인터랙션용 투명 input */}
+                  <input type="range" min={10} max={90} value={chatWeight}
+                    onChange={e => setChatWeight(Number(e.target.value))}
+                    className="absolute inset-0 w-full opacity-0 cursor-grab active:cursor-grabbing"
+                    style={{height:'100%'}}/>
+                </div>
+                <div className="flex justify-between text-[8px] text-white/20 mt-0.5">
+                  <span className="text-cyan-400/40">채팅 중심</span>
+                  <span>균형</span>
+                  <span className="text-purple-300/40">영상 중심</span>
+                </div>
+              </div>
+
+              {/* 자유 지시 */}
+              <div>
+                <div className="text-white/30 text-[9px] mb-1">AI에게 추가 지시</div>
+                <textarea
+                  value={reanalyzeNote}
+                  onChange={e => setReanalyzeNote(e.target.value)}
+                  placeholder="예: 킬 장면 위주로, 클립 시작을 5초 앞으로, 감동적인 순간 위주로..."
+                  rows={2}
+                  className="w-full bg-white/[0.03] border border-white/[0.08] rounded-lg px-2.5 py-2 text-white/60 text-[10px] outline-none focus:border-accent-purple/40 resize-none placeholder:text-white/20 leading-relaxed"
+                />
+              </div>
+
+              {/* 재분석 실행 */}
+              <div className="mt-auto">
+                {analyzing ? (
+                  <div className="rounded-xl border border-accent-purple/30 bg-accent-purple/[0.07] p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-accent-purple animate-pulse"/>
+                        <span className="text-accent-purple text-[10px] font-semibold">AI 재분석 중...</span>
+                      </div>
+                      <span className="text-accent-purple/60 text-[10px] font-mono">{Math.round(analyzeProgress)}%</span>
+                    </div>
+                    <div className="h-1 bg-white/[0.06] rounded-full overflow-hidden">
+                      <div className="h-full bg-accent-purple/70 rounded-full transition-all duration-200"
+                        style={{width:`${analyzeProgress}%`}}/>
+                    </div>
+                    <div className="text-white/30 text-[9px] mt-1.5">
+                      {analyzeProgress < 40 ? '채팅 데이터 분석 중...' : analyzeProgress < 75 ? '영상 패턴 감지 중...' : '결과 최적화 중...'}
+                    </div>
+                  </div>
+                ) : analyzeDone ? (
+                  <div className="rounded-xl border border-green-500/30 bg-green-500/[0.06] p-3 flex items-center gap-2">
+                    <span className="text-green-400 text-[11px]">✓</span>
+                    <span className="text-green-400/80 text-[10px] font-semibold">재분석 완료 — 점수가 업데이트되었습니다</span>
+                    <button onClick={() => setAnalyzeDone(false)}
+                      className="ml-auto text-white/25 hover:text-white/50 transition-colors"><X size={11}/></button>
+                  </div>
+                ) : (
+                  <button onClick={runAnalysis}
+                    disabled={reanalyzeTypes.size === 0}
+                    className="w-full flex items-center justify-center gap-2 bg-accent-purple/20 border border-accent-purple/40 text-accent-purple text-[11px] font-bold py-2.5 rounded-xl hover:bg-accent-purple/30 transition-colors disabled:opacity-40"
+                    style={{boxShadow:'0 0 12px rgba(124,58,237,.15)'}}>
+                    <RotateCcw size={11}/>
+                    선택한 방향으로 재분석
                   </button>
-                ))}
+                )}
               </div>
             </div>
 
-            {/* Action buttons */}
-            <div className="flex gap-1.5 mt-auto pt-1">
-              <button className="flex-1 flex items-center justify-center gap-1.5 bg-accent-purple text-white text-[11px] font-bold py-2 rounded-xl hover:bg-accent-purple/90 transition-colors"
-                style={{boxShadow:'0 0 12px rgba(124,58,237,.35)'}}>
-                <Upload size={11}/> 업로드
+            {/* 하단 액션 */}
+            <div className="flex gap-1.5 pt-1 border-t border-white/[0.06]">
+              <button className="flex-1 flex items-center justify-center gap-1 text-white/45 border border-white/[0.09] text-[10px] py-1.5 rounded-lg hover:border-accent-purple/40 hover:text-accent-purple transition-colors">
+                <Upload size={10}/> 업로드 페이지 →
               </button>
-              <button className="flex-1 flex items-center justify-center gap-1.5 text-white/55 border border-white/[0.1] text-[11px] py-2 rounded-xl hover:border-cyan-500/40 hover:text-cyan-400 transition-colors">
-                <Download size={11}/> 내보내기
+              <button className="flex-1 flex items-center justify-center gap-1 text-white/45 border border-white/[0.09] text-[10px] py-1.5 rounded-lg hover:border-cyan-500/35 hover:text-cyan-400 transition-colors">
+                <Download size={10}/> 내보내기 페이지 →
               </button>
-              <button className="flex items-center justify-center gap-1.5 text-white/40 border border-white/[0.1] text-[11px] px-3 py-2 rounded-xl hover:border-white/20 hover:text-white/60 transition-colors">
-                <RotateCcw size={10}/> 재분석
-              </button>
-              <button className="flex items-center justify-center px-3 py-2 rounded-xl border border-white/[0.07] text-red-400/50 hover:border-red-500/30 hover:text-red-400 transition-colors">
-                <Trash2 size={11}/>
+              <button className="flex items-center justify-center px-2.5 py-1.5 rounded-lg border border-white/[0.07] text-red-400/45 hover:border-red-500/30 hover:text-red-400 transition-colors">
+                <Trash2 size={10}/>
               </button>
             </div>
           </div>
@@ -484,77 +559,7 @@ function CommonSidebar({ onNavigate }: { onNavigate: (p: Page) => void }) {
   )
 }
 
-// ══════════════════════════════════════════════════════════
-// PAGE 1: 대시보드
-// ══════════════════════════════════════════════════════════
-function DashboardPage() {
-  const metrics = [
-    { icon:Radio,  label:'이번 주 방송', value:'3회',  sub:'+1 지난주 대비',   color:'text-purple-400' },
-    { icon:Film,   label:'생성된 클립',  value:'47개', sub:'이번 달 누적',     color:'text-cyan-400'   },
-    { icon:Eye,    label:'총 조회수',    value:'128K', sub:'+23% 지난주 대비', color:'text-green-400'  },
-    { icon:Star,   label:'평균 점수',    value:'86점', sub:'상위 13% 수준',    color:'text-yellow-400' },
-  ]
-  const broadcasts = [
-    { date:'05.27', title:'발로란트 마스터 도전기 EP.12', dur:'7:03:15', clips:12, score:87, status:'완료' },
-    { date:'05.25', title:'던전파이터 레이드 공략',       dur:'4:22:10', clips:8,  score:82, status:'완료' },
-    { date:'05.23', title:'리그 오브 레전드 챌린저 도전', dur:'5:48:30', clips:10, score:79, status:'완료' },
-    { date:'05.21', title:'스타크래프트 래더 매치',       dur:'3:11:45', clips:6,  score:74, status:'완료' },
-  ]
-  return (
-    <PageWrap>
-      <div className="px-5 pt-4 pb-2 flex-shrink-0">
-        <h3 className="text-white font-bold text-sm">대시보드</h3>
-        <p className="text-white/35 text-[11px]">전체 방송 현황 요약</p>
-      </div>
-      <div className="flex-1 px-5 pb-4 flex flex-col gap-3 min-h-0">
-        <div className="grid grid-cols-4 gap-3 flex-shrink-0">
-          {metrics.map(m => {
-            const Icon = m.icon
-            return (
-              <Card key={m.label} className="p-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <Icon size={13} className={m.color}/>
-                  <span className="text-white/40 text-[10px]">{m.label}</span>
-                </div>
-                <div className={`text-xl font-bold ${m.color}`}>{m.value}</div>
-                <div className="text-white/30 text-[10px] mt-0.5">{m.sub}</div>
-              </Card>
-            )
-          })}
-        </div>
-        <Card className="flex-1 flex flex-col min-h-0">
-          <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/[0.06]">
-            <span className="text-white/55 text-xs font-semibold">최근 방송</span>
-            <button className="text-accent-purple text-[10px]">전체 보기</button>
-          </div>
-          <div className="flex-1 overflow-hidden">
-            <table className="w-full text-[11px]">
-              <thead>
-                <tr className="border-b border-white/[0.05]">
-                  {['날짜','방송 제목','방송 시간','클립','점수','상태'].map(h => (
-                    <th key={h} className="px-4 py-2 text-left text-white/30 font-medium">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {broadcasts.map(b => (
-                  <tr key={b.date} className="border-b border-white/[0.04] hover:bg-white/[0.02]">
-                    <td className="px-4 py-2.5 text-white/40">{b.date}</td>
-                    <td className="px-4 py-2.5 text-white/70 font-medium">{b.title}</td>
-                    <td className="px-4 py-2.5 text-white/40">{b.dur}</td>
-                    <td className="px-4 py-2.5 text-cyan-400 font-semibold">{b.clips}개</td>
-                    <td className="px-4 py-2.5"><span className="text-accent-purple font-bold">{b.score}점</span></td>
-                    <td className="px-4 py-2.5"><span className="text-green-400/80 bg-green-500/10 px-2 py-px rounded-full text-[10px]">{b.status}</span></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
-      </div>
-    </PageWrap>
-  )
-}
+
 
 // ══════════════════════════════════════════════════════════
 // PAGE 2: 하이라이트 (interactive graph + hover sync + modal)
@@ -1035,41 +1040,169 @@ function AnalysisPage() {
 }
 
 // ══════════════════════════════════════════════════════════
-// PAGE 4: 클립 관리 (클릭 → 상세 모달)
+// PAGE 3: 방송 & 클립 (방송 이력 + 클립 관리 통합)
 // ══════════════════════════════════════════════════════════
 function ClipsPage({ onNav }: { onNav: (nav: UploadNav) => void }) {
-  const [openFilter,   setOpenFilter]   = useState<string | null>(null)
-  const [openMenu,     setOpenMenu]     = useState<number | null>(null)
-  const [activeFilters,setActiveFilters]= useState<Record<string,string>>({})
-  const [selectedClip, setSelectedClip] = useState<Clip | null>(null)
+  const [viewTab,       setViewTab]       = useState<'broadcast'|'clips'>('clips')
+  const [openFilter,    setOpenFilter]    = useState<string | null>(null)
+  const [openMenu,      setOpenMenu]      = useState<number | null>(null)
+  const [activeFilters, setActiveFilters] = useState<Record<string,string>>({})
+  const [selectedClip,  setSelectedClip]  = useState<Clip | null>(null)
+  const [sortBy,        setSortBy]        = useState<'score'|'date'>('score')
+  const [sortOrder,     setSortOrder]     = useState<'desc'|'asc'>('desc')
+
+  const broadcasts = [
+    { date:'2025.05.27', title:'발로란트 마스터 도전기 EP.12', platform:'치지직', dur:'7:03:15', viewers:'13,204', clips:12, status:'완료' },
+    { date:'2025.05.25', title:'던전파이터 레이드 공략',       platform:'치지직', dur:'4:22:10', viewers:'9,847',  clips:8,  status:'완료' },
+    { date:'2025.05.23', title:'리그 오브 레전드 챌린저 도전', platform:'SOOP',   dur:'5:48:30', viewers:'11,203', clips:10, status:'완료' },
+    { date:'2025.05.21', title:'스타크래프트 래더 매치',       platform:'치지직', dur:'3:11:45', viewers:'7,521',  clips:6,  status:'완료' },
+    { date:'2025.05.19', title:'메이플스토리 보스 공략',       platform:'SOOP',   dur:'6:22:00', viewers:'8,912',  clips:9,  status:'완료' },
+  ]
 
   const filterDefs = [
-    { id:'date',     label:'방송 날짜', opts:['전체','05.27','05.25','05.23','05.21'] },
-    { id:'genre',    label:'게임 장르', opts:['전체','발로란트','리그오브레전드','스타크래프트','기타'] },
+    { id:'date',     label:'방송 날짜', opts:['전체','05.27','05.25','05.23'] },
+    { id:'genre',    label:'게임 장르', opts:['전체','발로란트','리그오브레전드','기타'] },
     { id:'platform', label:'플랫폼',   opts:['전체','치지직','SOOP'] },
     { id:'score',    label:'점수 범위', opts:['전체','90~100점','80~89점','70~79점','60~69점'] },
   ]
 
+  const scoreRanges: Record<string,[number,number]> = {
+    '90~100점':[90,100], '80~89점':[80,89], '70~79점':[70,79], '60~69점':[60,69]
+  }
+
+  // 실제 필터링 + 정렬
+  const displayClips = ALL_CLIPS
+    .filter(clip => {
+      const f = activeFilters
+      if (f.date     && f.date     !== '전체' && clip.date     !== f.date)     return false
+      if (f.genre    && f.genre    !== '전체' && clip.genre    !== f.genre)    return false
+      if (f.platform && f.platform !== '전체' && clip.platform !== f.platform) return false
+      if (f.score    && f.score    !== '전체') {
+        const [min,max] = scoreRanges[f.score]
+        if (clip.score < min || clip.score > max) return false
+      }
+      return true
+    })
+    .sort((a, b) => {
+      if (sortBy === 'score') return sortOrder === 'desc' ? b.score - a.score : a.score - b.score
+      // 날짜 정렬 ('05.27' > '05.25' > '05.23')
+      const cmp = a.date.localeCompare(b.date)
+      return sortOrder === 'desc' ? -cmp : cmp
+    })
+
+  const activeFilterCount = Object.values(activeFilters).filter(v => v && v !== '전체').length
+
   const closeAll = () => { setOpenFilter(null); setOpenMenu(null) }
+
+  const handleSortClick = (by: 'score'|'date') => {
+    if (sortBy === by) setSortOrder(o => o === 'desc' ? 'asc' : 'desc')
+    else { setSortBy(by); setSortOrder('desc') }
+  }
 
   return (
     <PageWrap>
-      <div className="px-5 pt-4 pb-2 flex-shrink-0 flex items-center justify-between">
-        <div>
-          <h3 className="text-white font-bold text-sm">클립 관리</h3>
-          <p className="text-white/35 text-[11px]">총 {ALL_CLIPS.length}개 클립 · 클립 클릭 시 상세 편집</p>
+      {/* 헤더 + 탭 */}
+      <div className="px-5 pt-4 pb-0 flex-shrink-0">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h3 className="text-white font-bold text-sm">방송 & 클립</h3>
+            <p className="text-white/35 text-[11px]">
+              {viewTab === 'clips'
+                ? displayClips.length < ALL_CLIPS.length
+                  ? <><span className="text-accent-purple font-semibold">{displayClips.length}</span>/{ALL_CLIPS.length}개 클립</>
+                  : <>총 {ALL_CLIPS.length}개 클립</>
+                : `총 ${broadcasts.length}회 방송`}
+            </p>
+          </div>
+          {viewTab === 'clips' && (
+            <div className="flex items-center gap-2">
+              <div className="flex items-center bg-white/[0.04] border border-white/[0.08] rounded-lg overflow-hidden">
+                {([['score','점수순'],['date','날짜순']] as [typeof sortBy, string][]).map(([by, label]) => (
+                  <button key={by} onClick={() => handleSortClick(by)}
+                    className={`flex items-center gap-1 px-2.5 py-1.5 text-[10px] transition-colors ${
+                      sortBy===by ? 'text-accent-purple bg-accent-purple/15 font-semibold' : 'text-white/35 hover:text-white/55'
+                    }`}>
+                    {label}{sortBy===by && <span className="text-[9px] leading-none">{sortOrder==='desc'?'↓':'↑'}</span>}
+                  </button>
+                ))}
+              </div>
+              <div className="flex items-center gap-1.5 bg-white/[0.05] border border-white/[0.08] rounded-lg px-3 py-1.5">
+                <Search size={11} className="text-white/30"/>
+                <input className="bg-transparent text-white/60 text-[11px] outline-none w-24 placeholder:text-white/25"
+                  placeholder="클립 검색..." readOnly/>
+              </div>
+            </div>
+          )}
         </div>
-        <div className="flex items-center gap-1.5 bg-white/[0.05] border border-white/[0.08] rounded-lg px-3 py-1.5">
-          <Search size={11} className="text-white/30"/>
-          <input className="bg-transparent text-white/60 text-[11px] outline-none w-28 placeholder:text-white/25"
-            placeholder="클립 검색..." readOnly/>
+        {/* 탭 */}
+        <div className="flex gap-1 border-b border-white/[0.07]">
+          {([['clips','클립 관리'],['broadcast','방송 이력']] as ['clips'|'broadcast', string][]).map(([tab, label]) => (
+            <button key={tab} onClick={() => setViewTab(tab)}
+              className={`px-4 py-2 text-xs font-semibold transition-colors border-b-2 -mb-px ${
+                viewTab===tab ? 'text-accent-purple border-accent-purple' : 'text-white/35 border-transparent hover:text-white/55'
+              }`}>{label}</button>
+          ))}
         </div>
       </div>
 
+      {/* 방송 이력 탭 */}
+      {viewTab === 'broadcast' && (
+        <div className="flex-1 px-5 pt-3 pb-4 flex flex-col gap-3 min-h-0">
+          <div className="grid grid-cols-3 gap-3 flex-shrink-0">
+            {([
+              { label:'이번 달 총 방송 시간', value:'26h 48m', color:'text-cyan-400'   },
+              { label:'최고 동시 시청자',     value:'13,204명', color:'text-purple-400' },
+              { label:'평균 방송 시간',       value:'5h 22m',  color:'text-green-400'  },
+            ] as {label:string;value:string;color:string}[]).map(s => (
+              <Card key={s.label} className="p-3">
+                <div className="text-white/35 text-[10px]">{s.label}</div>
+                <div className={`text-lg font-bold mt-0.5 ${s.color}`}>{s.value}</div>
+              </Card>
+            ))}
+          </div>
+          <Card className="flex-1 flex flex-col min-h-0">
+            <div className="px-4 py-2.5 border-b border-white/[0.06] flex-shrink-0">
+              <span className="text-white/55 text-xs font-semibold">방송 이력</span>
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <table className="w-full text-[11px]">
+                <thead>
+                  <tr className="border-b border-white/[0.05]">
+                    {['날짜','방송 제목','플랫폼','시간','시청자','클립','상태'].map(h => (
+                      <th key={h} className="px-4 py-2 text-left text-white/30 font-medium">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {broadcasts.map(b => (
+                    <tr key={b.date+b.title} className="border-b border-white/[0.04] hover:bg-white/[0.02] cursor-pointer"
+                      onClick={() => { setViewTab('clips'); setActiveFilters({ date: b.date.slice(5).replace('.','.') }) }}>
+                      <td className="px-4 py-2.5 text-white/40">{b.date}</td>
+                      <td className="px-4 py-2.5 text-white/70 font-medium max-w-[200px] truncate">{b.title}</td>
+                      <td className="px-4 py-2.5">
+                        <span className={`text-[9px] px-1.5 py-px rounded-full font-medium ${
+                          b.platform==='치지직'?'text-green-400/70 bg-green-500/10':'text-orange-400/70 bg-orange-500/10'
+                        }`}>{b.platform}</span>
+                      </td>
+                      <td className="px-4 py-2.5 text-white/40">{b.dur}</td>
+                      <td className="px-4 py-2.5 text-cyan-400">{b.viewers}</td>
+                      <td className="px-4 py-2.5 text-accent-purple font-semibold">{b.clips}개</td>
+                      <td className="px-4 py-2.5"><span className="text-green-400/80 bg-green-500/10 px-2 py-px rounded-full">{b.status}</span></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* 클립 관리 탭 */}
+      {viewTab === 'clips' && <>
       {/* 필터 바 */}
-      <div className="px-5 pb-2 flex-shrink-0" onClick={closeAll}>
+      <div className="px-5 pt-2 pb-2 flex-shrink-0" onClick={closeAll}>
         <div className="flex items-center gap-2">
-          <Filter size={10} className="text-white/30 flex-shrink-0"/>
+          <Filter size={10} className={`flex-shrink-0 ${activeFilterCount > 0 ? 'text-accent-purple/70' : 'text-white/30'}`}/>
           {filterDefs.map(f => (
             <div key={f.id} className="relative" onClick={e => e.stopPropagation()}>
               <button
@@ -1097,12 +1230,31 @@ function ClipsPage({ onNav }: { onNav: (nav: UploadNav) => void }) {
               )}
             </div>
           ))}
+          {/* 필터 초기화 */}
+          {activeFilterCount > 0 && (
+            <button
+              onClick={() => { setActiveFilters({}); closeAll() }}
+              className="flex items-center gap-1 text-[10px] text-white/35 hover:text-white/60 transition-colors ml-auto"
+            >
+              <RotateCcw size={9}/> 초기화
+            </button>
+          )}
         </div>
       </div>
 
       <div className="flex-1 px-5 pb-4 min-h-0 overflow-y-auto" onClick={closeAll}>
+        {displayClips.length === 0 ? (
+          <div className="h-full flex flex-col items-center justify-center gap-2 text-white/20">
+            <Filter size={28}/>
+            <p className="text-[12px]">조건에 맞는 클립이 없습니다</p>
+            <button
+              onClick={() => setActiveFilters({})}
+              className="text-[11px] text-accent-purple/70 hover:text-accent-purple transition-colors mt-1"
+            >필터 초기화</button>
+          </div>
+        ) : (
         <div className="grid grid-cols-4 gap-2">
-          {ALL_CLIPS.map(clip => (
+          {displayClips.map(clip => (
             <div key={clip.rank}
               onClick={() => { closeAll(); setSelectedClip(clip) }}
               className="bg-white/[0.04] rounded-xl border border-white/[0.07] hover:border-accent-purple/40 hover:-translate-y-px transition-all cursor-pointer flex flex-col group">
@@ -1206,7 +1358,10 @@ function ClipsPage({ onNav }: { onNav: (nav: UploadNav) => void }) {
             </div>
           ))}
         </div>
+        )}
       </div>
+
+      </>}
 
       <AnimatePresence>
         {selectedClip && (
@@ -1218,7 +1373,7 @@ function ClipsPage({ onNav }: { onNav: (nav: UploadNav) => void }) {
 }
 
 // ══════════════════════════════════════════════════════════
-// PAGE 5: 업로드 & 내보내기
+// PAGE 4: 업로드 & 내보내기
 // ══════════════════════════════════════════════════════════
 function UploadPage({ initialNav }: { initialNav: UploadNav | null }) {
   const [activeTab,         setActiveTab]         = useState<'upload'|'export'>('upload')
@@ -1773,68 +1928,141 @@ function UploadPage({ initialNav }: { initialNav: UploadNav | null }) {
 }
 
 // ══════════════════════════════════════════════════════════
-// PAGE 6: 방송 관리
+// PAGE 5: 성과 분석
 // ══════════════════════════════════════════════════════════
-function BroadcastPage() {
-  const broadcasts = [
-    { date:'2025.05.27', title:'발로란트 마스터 도전기 EP.12', platform:'치지직', dur:'7:03:15', viewers:'13,204', clips:12, status:'완료' },
-    { date:'2025.05.25', title:'던전파이터 레이드 공략',       platform:'치지직', dur:'4:22:10', viewers:'9,847',  clips:8,  status:'완료' },
-    { date:'2025.05.23', title:'리그 오브 레전드 챌린저 도전', platform:'SOOP',   dur:'5:48:30', viewers:'11,203', clips:10, status:'완료' },
-    { date:'2025.05.21', title:'스타크래프트 래더 매치',       platform:'치지직', dur:'3:11:45', viewers:'7,521',  clips:6,  status:'완료' },
-    { date:'2025.05.19', title:'메이플스토리 보스 공략',       platform:'SOOP',   dur:'6:22:00', viewers:'8,912',  clips:9,  status:'완료' },
+function PerformancePage() {
+  const fmtN = (n: number) => n >= 1000000 ? `${(n/1000000).toFixed(1)}M` : n >= 1000 ? `${(n/1000).toFixed(0)}K` : `${n}`
+
+  const platforms = [
+    { name:'YouTube', icon:'▶', color:'#ff0000', clips:12, views:850000, likes:18200 },
+    { name:'TikTok',  icon:'♪', color:'#69c9d0', clips:8,  views:250000, likes:4200  },
+    { name:'치지직',  icon:'◈', color:'#00d564', clips:15, views:120000, likes:1100  },
+    { name:'SOOP',    icon:'◉', color:'#ff6b35', clips:5,  views:45000,  likes:890   },
   ]
+  const totalViews = platforms.reduce((s,p) => s+p.views, 0)
+  const totalLikes = platforms.reduce((s,p) => s+p.likes, 0)
+  const totalClips = platforms.reduce((s,p) => s+p.clips, 0)
+
+  const weeklyViews = [42,68,55,89,73,112,95]
+  const maxW = Math.max(...weeklyViews)
+  const weekDays = ['월','화','수','목','금','토','일']
+
+  const topClips = [
+    { rank:1, title:'극적인 역전 순간!',   platform:'YouTube', pColor:'#ff0000', views:312000, likes:8400, daysAgo:1 },
+    { rank:2, title:'보조킬 완벽 타이밍', platform:'TikTok',  pColor:'#69c9d0', views:187000, likes:3200, daysAgo:1 },
+    { rank:3, title:'연속 킬 폭발!',      platform:'YouTube', pColor:'#ff0000', views:143000, likes:4100, daysAgo:0 },
+    { rank:1, title:'극적인 역전 순간!',   platform:'치지직',  pColor:'#00d564', views:98000,  likes:820,  daysAgo:1 },
+    { rank:4, title:'전설 아이템 획득!',  platform:'TikTok',  pColor:'#69c9d0', views:63000,  likes:1000, daysAgo:0 },
+  ]
+
   return (
     <PageWrap>
       <div className="px-5 pt-4 pb-2 flex-shrink-0 flex items-center justify-between">
         <div>
-          <h3 className="text-white font-bold text-sm">방송 관리</h3>
-          <p className="text-white/35 text-[11px]">방송 이력 및 스트림 설정</p>
+          <h3 className="text-white font-bold text-sm">성과 분석</h3>
+          <p className="text-white/35 text-[11px]">업로드된 클립의 플랫폼별 성과</p>
         </div>
-        <div className="flex items-center gap-1.5 bg-white/[0.05] border border-white/[0.08] rounded-lg px-3 py-1.5">
+        <div className="flex items-center gap-1.5 bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-1.5">
           <Calendar size={11} className="text-white/30"/>
-          <span className="text-white/40 text-[11px]">2025.05</span>
+          <span className="text-white/40 text-[11px]">최근 30일</span>
         </div>
       </div>
+
       <div className="flex-1 px-5 pb-4 flex flex-col gap-3 min-h-0">
-        <div className="grid grid-cols-3 gap-3 flex-shrink-0">
-          {[
-            { label:'이번 달 총 방송', value:'3회',     color:'text-cyan-400'   },
-            { label:'평균 시청자 수',  value:'10,137명', color:'text-purple-400' },
-            { label:'생성 클립 수',    value:'47개',     color:'text-green-400'  },
-          ].map(s => (
+
+        {/* 상단 지표 */}
+        <div className="grid grid-cols-4 gap-3 flex-shrink-0">
+          {([
+            { label:'총 조회수',   value:fmtN(totalViews),                       sub:'+23% 지난달 대비', color:'text-cyan-400'    },
+            { label:'총 좋아요',   value:fmtN(totalLikes),                       sub:'전 플랫폼 합산',   color:'text-pink-400'    },
+            { label:'업로드 클립', value:`${totalClips}개`,                      sub:'4개 플랫폼',       color:'text-accent-purple'},
+            { label:'평균 조회수', value:fmtN(Math.round(totalViews/totalClips)),sub:'클립 1개 기준',    color:'text-green-400'   },
+          ] as {label:string;value:string;sub:string;color:string}[]).map(s => (
             <Card key={s.label} className="p-3">
-              <div className="text-white/35 text-[10px]">{s.label}</div>
-              <div className={`text-lg font-bold mt-0.5 ${s.color}`}>{s.value}</div>
+              <div className="text-white/35 text-[10px] mb-1">{s.label}</div>
+              <div className={`text-xl font-bold ${s.color}`}>{s.value}</div>
+              <div className="text-white/25 text-[9px] mt-0.5">{s.sub}</div>
             </Card>
           ))}
         </div>
+
+        {/* 주간 그래프 + 플랫폼별 */}
+        <div className="flex gap-3 flex-shrink-0">
+          <Card className="flex-1 p-3">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-white/55 text-[11px] font-semibold">주간 조회수 추이</span>
+              <span className="text-white/25 text-[9px]">단위: 천 회</span>
+            </div>
+            <div className="flex items-end gap-1.5 h-[76px]">
+              {weeklyViews.map((v, i) => (
+                <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                  <span className="text-white/30 text-[8px]">{v}</span>
+                  <div className="w-full rounded-t-sm"
+                    style={{
+                      height:`${(v/maxW)*52}px`, minHeight:'4px',
+                      background: i===5 ? '#7c3aed' : i===6 ? 'rgba(124,58,237,0.55)' : 'rgba(124,58,237,0.28)',
+                    }}/>
+                  <span className="text-white/25 text-[8px]">{weekDays[i]}</span>
+                </div>
+              ))}
+            </div>
+          </Card>
+
+          <Card className="w-52 flex-shrink-0 p-3">
+            <span className="text-white/55 text-[11px] font-semibold block mb-3">플랫폼별 성과</span>
+            <div className="space-y-2.5">
+              {platforms.map(p => (
+                <div key={p.name}>
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px]" style={{color:p.color}}>{p.icon}</span>
+                      <span className="text-white/55 text-[10px]">{p.name}</span>
+                      <span className="text-white/25 text-[9px]">{p.clips}개</span>
+                    </div>
+                    <span className="text-white/55 text-[10px] font-semibold">{fmtN(p.views)}</span>
+                  </div>
+                  <div className="h-1 bg-white/[0.06] rounded-full overflow-hidden">
+                    <div className="h-full rounded-full" style={{width:`${p.views/totalViews*100}%`, background:p.color+'cc'}}/>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        </div>
+
+        {/* 상위 클립 성과 테이블 */}
         <Card className="flex-1 flex flex-col min-h-0">
           <div className="px-4 py-2.5 border-b border-white/[0.06] flex-shrink-0">
-            <span className="text-white/55 text-xs font-semibold">방송 이력</span>
+            <span className="text-white/55 text-xs font-semibold">상위 클립 성과</span>
           </div>
           <div className="flex-1 overflow-hidden">
             <table className="w-full text-[11px]">
               <thead>
                 <tr className="border-b border-white/[0.05]">
-                  {['날짜','방송 제목','플랫폼','시간','시청자','클립','상태'].map(h => (
+                  {['클립','플랫폼','조회수','좋아요','업로드'].map(h => (
                     <th key={h} className="px-4 py-2 text-left text-white/30 font-medium">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {broadcasts.map(b => (
-                  <tr key={b.date+b.title} className="border-b border-white/[0.04] hover:bg-white/[0.02]">
-                    <td className="px-4 py-2.5 text-white/40">{b.date}</td>
-                    <td className="px-4 py-2.5 text-white/70 font-medium max-w-[200px] truncate">{b.title}</td>
+                {topClips.map((c,i) => (
+                  <tr key={i} className="border-b border-white/[0.04] hover:bg-white/[0.02]">
                     <td className="px-4 py-2.5">
-                      <span className={`text-[9px] px-1.5 py-px rounded-full font-medium ${
-                        b.platform==='치지직'?'text-green-400/70 bg-green-500/10':'text-orange-400/70 bg-orange-500/10'
-                      }`}>{b.platform}</span>
+                      <div className="flex items-center gap-2">
+                        <div className="relative flex-shrink-0 rounded overflow-hidden" style={{width:'40px',aspectRatio:'16/9'}}>
+                          <img src={THUMB_IMGS[(c.rank-1)%THUMB_IMGS.length]} alt={c.title}
+                            className="absolute inset-0 w-full h-full object-cover" draggable={false}/>
+                        </div>
+                        <span className="text-white/65 font-medium truncate max-w-[130px]">{c.title}</span>
+                      </div>
                     </td>
-                    <td className="px-4 py-2.5 text-white/40">{b.dur}</td>
-                    <td className="px-4 py-2.5 text-cyan-400">{b.viewers}</td>
-                    <td className="px-4 py-2.5 text-accent-purple font-semibold">{b.clips}개</td>
-                    <td className="px-4 py-2.5"><span className="text-green-400/80 bg-green-500/10 px-2 py-px rounded-full">{b.status}</span></td>
+                    <td className="px-4 py-2.5">
+                      <span className="text-[9px] px-1.5 py-0.5 rounded-full font-medium"
+                        style={{color:c.pColor, background:c.pColor+'22'}}>{c.platform}</span>
+                    </td>
+                    <td className="px-4 py-2.5 text-cyan-400 font-semibold">{fmtN(c.views)}</td>
+                    <td className="px-4 py-2.5 text-pink-400/80">{fmtN(c.likes)}</td>
+                    <td className="px-4 py-2.5 text-white/35">{c.daysAgo===0?'오늘':`${c.daysAgo}일 전`}</td>
                   </tr>
                 ))}
               </tbody>
@@ -1847,7 +2075,7 @@ function BroadcastPage() {
 }
 
 // ══════════════════════════════════════════════════════════
-// PAGE 7: 설정
+// PAGE 6: 설정
 // ══════════════════════════════════════════════════════════
 function SettingsPage() {
   const [chzKey,      setChzKey]      = useState('chzzk_live_••••••••••••••••')
@@ -2128,13 +2356,12 @@ export default function LiveDashboard() {
   }
 
   const pageComponents: Record<Page, React.ReactNode> = {
-    dashboard: <DashboardPage />,
-    highlight: <HighlightPage onNav={navigateToUpload} />,
-    analysis:  <AnalysisPage />,
-    clips:     <ClipsPage onNav={navigateToUpload} />,
-    upload:    <UploadPage initialNav={uploadNav} />,
-    broadcast: <BroadcastPage />,
-    settings:  <SettingsPage />,
+    highlight:   <HighlightPage onNav={navigateToUpload} />,
+    analysis:    <AnalysisPage />,
+    clips:       <ClipsPage onNav={navigateToUpload} />,
+    upload:      <UploadPage initialNav={uploadNav} />,
+    performance: <PerformancePage />,
+    settings:    <SettingsPage />,
   }
 
   return (
