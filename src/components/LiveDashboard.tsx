@@ -17,7 +17,7 @@ import {
   Radio, Settings, Download, Bell, HelpCircle,
   ChevronDown, Users, Star, Search,
   Play, Filter, Wifi, Calendar,
-  Eye, MessageSquare, Link2, Shield, Sliders,
+  Eye, MessageSquare, Link2, Shield,
   MoreHorizontal, RotateCcw, Trash2,
   Pencil, X,
 } from 'lucide-react'
@@ -1168,21 +1168,20 @@ function UploadPage() {
   const connectedNames = platforms.filter(p => p.connected).map(p => p.name)
   const exportClips = ALL_CLIPS.slice(0,4)
 
-  // 클립별 AI 추천 제목 (클립 고유 제목 반영)
+  // 클립별 AI 추천 제목 2개
   const getAiTitles = (clip: Clip) => [
     `${clip.title} — 발로란트 EP.12 하이라이트`,
     `이 순간이 바로 클립각! ${clip.title}`,
-    `BJ 던파파이터 ${clip.date} 방송 명장면`,
   ]
 
-  // 클립별 AI 추천 태그 풀 (공통 태그 + 클립 자체 태그)
+  // 클립별 AI 추천 태그 풀 — 최대 5개
   const getAiTagPool = (clip: Clip) => {
-    const base = ['#발로란트','#하이라이트','#BJ던파파이터','#치지직','#게임클립','#마스터도전','#클립각','#한국게임']
-    return [...clip.tags, ...base.filter(t => !clip.tags.includes(t))]
+    const base = ['#발로란트','#하이라이트','#BJ던파파이터','#치지직','#게임클립']
+    return [...clip.tags.slice(0,2), ...base.filter(t => !clip.tags.includes(t))].slice(0,5)
   }
 
-  // 클립의 선택된 태그 Set (없으면 처음 6개 기본 선택)
-  const getClipTagSet = (rank: number) => clipTags[rank] ?? new Set([0,1,2,3,4,5])
+  // 클립의 선택된 태그 Set (없으면 처음 4개 기본 선택)
+  const getClipTagSet = (rank: number) => clipTags[rank] ?? new Set([0,1,2,3])
 
   const togglePlatform = (name: string) => {
     setSelectedPlatforms(prev => { const n=new Set(prev); n.has(name)?n.delete(name):n.add(name); return n })
@@ -1267,7 +1266,7 @@ function UploadPage() {
       </div>
 
       {activeTab === 'upload' ? (
-        <div className="flex-1 px-5 pt-3 pb-4 flex flex-col gap-3 min-h-0 overflow-y-auto">
+        <div className="flex-1 px-5 pt-3 pb-4 flex flex-col gap-3 min-h-0 overflow-hidden">
 
           {/* ① 업로드 플랫폼 선택 */}
           <div className="flex-shrink-0">
@@ -1446,7 +1445,7 @@ function UploadPage() {
                           </button>
                         ))}
                         {/* 직접 입력 */}
-                        <div className="flex items-center bg-white/[0.04] border border-white/[0.09] rounded-full px-2 py-0.5 gap-1 mt-0.5">
+                        <div className="flex items-center bg-white/[0.04] border border-white/[0.09] rounded-full px-2 py-0.5 gap-1">
                           <input
                             value={clipTagInputs[clip.rank] ?? ''}
                             onChange={e => setClipTagInputs(prev => ({...prev, [clip.rank]: e.target.value}))}
@@ -1467,7 +1466,7 @@ function UploadPage() {
                   <span className="text-white/55 text-[11px] font-semibold">③ AI 추천 제목 + 태그</span>
                   <span className="text-[9px] text-cyan-400/70 bg-cyan-500/10 px-2 py-px rounded-full">클립별 개별 적용</span>
                 </div>
-                <div className="space-y-2.5">
+                <div className="space-y-2">
                   {uploadClips.filter(c => selectedClips.has(c.rank)).map(clip => {
                     const tagPool = getAiTagPool(clip)
                     const tagSet  = getClipTagSet(clip.rank)
@@ -1517,7 +1516,7 @@ function UploadPage() {
                           </div>
 
                           {/* 태그 옵션 + 직접 입력 */}
-                          <div className="w-36 flex-shrink-0 border-l border-white/[0.05] pl-2.5">
+                          <div className="w-32 flex-shrink-0 border-l border-white/[0.05] pl-2.5">
                             <div className="text-white/25 text-[9px] mb-1.5">태그</div>
                             <div className="flex flex-wrap gap-1">
                               {tagPool.map((tag, i) => (
@@ -1565,7 +1564,7 @@ function UploadPage() {
           </button>
         </div>
       ) : (
-        <div className="flex-1 px-5 pt-3 pb-4 flex flex-col gap-3 min-h-0 overflow-y-auto">
+        <div className="flex-1 px-5 pt-3 pb-4 flex flex-col gap-3 min-h-0 overflow-hidden">
           {/* 클립 선택 */}
           <Card className="flex-1 flex flex-col min-h-0">
             <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/[0.06] flex-shrink-0">
@@ -1615,66 +1614,64 @@ function UploadPage() {
             </div>
           </Card>
 
-          {/* 옵션 */}
-          <div className="flex gap-3 flex-shrink-0">
-            {/* 플랫폼 비율 */}
-            <Card className="flex-1 p-3">
-              <span className="text-white/55 text-[11px] font-semibold block mb-2.5">플랫폼 비율</span>
-              <div className="grid grid-cols-3 gap-2">
-                {([
-                  { ratio:'16:9', label:'가로',   desc:'YouTube · 치지직', w:32, h:18 },
-                  { ratio:'9:16', label:'세로',   desc:'TikTok · Shorts',  w:18, h:32 },
-                  { ratio:'1:1',  label:'정사각', desc:'Instagram · 피드', w:24, h:24 },
-                ] as { ratio:string; label:string; desc:string; w:number; h:number }[]).map(r => (
-                  <button key={r.ratio} onClick={() => setExportRatio(r.ratio)}
-                    className={`flex flex-col items-center gap-1.5 p-2 rounded-xl border transition-all ${
-                      exportRatio === r.ratio
-                        ? 'border-accent-purple/55 bg-accent-purple/10'
-                        : 'border-white/[0.07] bg-white/[0.02] hover:border-white/15'
-                    }`}
-                  >
-                    {/* 비율 시각화 박스 */}
-                    <div className="flex items-center justify-center" style={{height:'34px'}}>
-                      <div
-                        className={`rounded-sm border-2 transition-colors ${
+          {/* 옵션 — 비율 + 포맷 통합 */}
+          <Card className="flex-shrink-0 p-3">
+            <div className="flex gap-3 items-start">
+              {/* 비율 */}
+              <div className="flex-1 min-w-0">
+                <div className="text-white/35 text-[9px] font-semibold mb-1.5">비율</div>
+                <div className="flex gap-1.5">
+                  {([
+                    { ratio:'16:9', desc:'YouTube · 치지직', w:22, h:12 },
+                    { ratio:'9:16', desc:'TikTok · Shorts',  w:12, h:22 },
+                    { ratio:'1:1',  desc:'Instagram · 피드', w:17, h:17 },
+                  ] as {ratio:string;desc:string;w:number;h:number}[]).map(r => (
+                    <button key={r.ratio} onClick={() => setExportRatio(r.ratio)}
+                      className={`flex items-center gap-2 px-2.5 py-2 rounded-xl border transition-all flex-1 ${
+                        exportRatio === r.ratio
+                          ? 'border-accent-purple/55 bg-accent-purple/10'
+                          : 'border-white/[0.07] bg-white/[0.02] hover:border-white/15'
+                      }`}
+                    >
+                      <div className="flex items-center justify-center w-6 flex-shrink-0">
+                        <div className={`rounded-sm border-2 transition-colors ${
                           exportRatio === r.ratio ? 'border-accent-purple' : 'border-white/25'
-                        }`}
-                        style={{width:`${r.w}px`, height:`${r.h}px`}}
-                      />
-                    </div>
-                    <span className={`text-[10px] font-bold transition-colors ${
-                      exportRatio === r.ratio ? 'text-accent-purple' : 'text-white/50'
-                    }`}>{r.ratio}</span>
-                    <span className={`text-[8px] transition-colors ${
-                      exportRatio === r.ratio ? 'text-white/55' : 'text-white/25'
-                    }`}>{r.desc}</span>
-                  </button>
-                ))}
+                        }`} style={{width:`${r.w}px`,height:`${r.h}px`}}/>
+                      </div>
+                      <div className="text-left min-w-0">
+                        <div className={`text-[10px] font-bold ${exportRatio===r.ratio?'text-accent-purple':'text-white/50'}`}>{r.ratio}</div>
+                        <div className={`text-[8px] truncate ${exportRatio===r.ratio?'text-white/45':'text-white/20'}`}>{r.desc}</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
               </div>
-            </Card>
-            {/* 파일 포맷 */}
-            <Card className="w-36 flex-shrink-0 p-3">
-              <span className="text-white/55 text-[11px] font-semibold block mb-2">파일 포맷</span>
-              {([
-                ['MP4', 'H.264 · 범용'],
-                ['MOV', 'H.264 · 편집용'],
-                ['WebM','VP9 · 웹 최적화'],
-              ] as [string,string][]).map(([fmt, desc]) => (
-                <button key={fmt} onClick={() => setExportFormat(fmt)}
-                  className="flex items-center gap-2 py-1.5 w-full text-left">
-                  <span className={`w-3 h-3 rounded-full border flex-shrink-0 flex items-center justify-center ${
-                    exportFormat===fmt ? 'border-accent-purple' : 'border-white/20'
-                  }`}>
-                    {exportFormat===fmt && <span className="w-1.5 h-1.5 rounded-full bg-accent-purple block"/>}
-                  </span>
-                  <div>
-                    <span className={`text-[10px] font-semibold ${exportFormat===fmt?'text-white/80':'text-white/40'}`}>{fmt}</span>
-                    <span className="text-white/20 text-[8px] ml-1.5">{desc}</span>
-                  </div>
-                </button>
-              ))}
-            </Card>
-          </div>
+              {/* 구분선 */}
+              <div className="w-px self-stretch bg-white/[0.06] mx-1"/>
+              {/* 포맷 */}
+              <div className="flex-shrink-0">
+                <div className="text-white/35 text-[9px] font-semibold mb-1.5">포맷</div>
+                <div className="flex gap-1.5">
+                  {([
+                    ['MP4', 'H.264 · 범용'],
+                    ['MOV', 'H.264 · 편집용'],
+                    ['WebM','VP9 · 웹'],
+                  ] as [string,string][]).map(([fmt, desc]) => (
+                    <button key={fmt} onClick={() => setExportFormat(fmt)}
+                      className={`px-2.5 py-2 rounded-xl border transition-all text-left ${
+                        exportFormat===fmt
+                          ? 'border-accent-purple/55 bg-accent-purple/10'
+                          : 'border-white/[0.07] bg-white/[0.02] hover:border-white/15'
+                      }`}
+                    >
+                      <div className={`text-[10px] font-bold ${exportFormat===fmt?'text-accent-purple':'text-white/50'}`}>{fmt}</div>
+                      <div className={`text-[8px] ${exportFormat===fmt?'text-white/40':'text-white/20'}`}>{desc}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </Card>
 
           {/* 일괄 다운로드 */}
           <button
@@ -1768,22 +1765,48 @@ function BroadcastPage() {
 // PAGE 7: 설정
 // ══════════════════════════════════════════════════════════
 function SettingsPage() {
-  const [chzKey,    setChzKey]    = useState('chzzk_live_••••••••••••••••')
-  const [soopKey,   setSoopKey]   = useState('')
-  const [showChz,   setShowChz]   = useState(false)
-  const [showSoop,  setShowSoop]  = useState(false)
-  const [notifs,    setNotifs]    = useState<Record<string,boolean>>({
+  const [chzKey,      setChzKey]      = useState('chzzk_live_••••••••••••••••')
+  const [soopKey,     setSoopKey]     = useState('')
+  const [showChz,     setShowChz]     = useState(false)
+  const [showSoop,    setShowSoop]    = useState(false)
+  const [streamTab,   setStreamTab]   = useState<'치지직'|'SOOP'>('치지직')
+  const [notifs,      setNotifs]      = useState<Record<string,boolean>>({
     '하이라이트 감지 시': true, '방송 종료 후 요약': true,
     '클립 업로드 완료': false, '주간 리포트': true,
   })
 
-  const CLIVO_RTMP   = 'rtmp://stream.clivo.ai/live'
+  const CLIVO_RTMP    = 'rtmp://stream.clivo.ai/live'
   const CLIVO_CHZ_KEY = 'clv_chz_9f3k••••••••'
-  const CLIVO_SOOP_KEY = '—'  // SOOP 키 미입력 시
-
-  const mask = (v: string) => v.replace(/(?<=.{6}).(?=.{4})/g, '•')
+  // SOOP 키가 입력되면 해시 기반으로 Clivo 키 생성 (데모용 결정론적 값)
+  const CLIVO_SOOP_KEY = soopKey
+    ? 'clv_soop_' + (soopKey.slice(-4).padStart(4,'x')) + '••••••••'
+    : ''
 
   const copyText = (text: string) => navigator.clipboard?.writeText(text)
+
+  const streamPlatforms = {
+    '치지직': {
+      icon:'◈', color:'#00d564', colorCls:'text-green-400', borderCls:'border-green-500/25',
+      connected: !!chzKey, platformKey: chzKey, setPlatformKey: setChzKey,
+      show: showChz, setShow: setShowChz,
+      clivoKey: CLIVO_CHZ_KEY, placeholder:'치지직 스트림 키 붙여넣기',
+      hint:'치지직 스튜디오 → 방송 설정 → 스트림 키',
+    },
+    'SOOP': {
+      icon:'◉', color:'#ff6b35', colorCls:'text-orange-400', borderCls:'border-orange-500/20',
+      connected: !!soopKey, platformKey: soopKey, setPlatformKey: setSoopKey,
+      show: showSoop, setShow: setShowSoop,
+      clivoKey: CLIVO_SOOP_KEY, placeholder:'SOOP 스트림 키 붙여넣기',
+      hint:'SOOP 방송국 → 방송 설정 → 스트림 키',
+    },
+  } as Record<string, {
+    icon:string; color:string; colorCls:string; borderCls:string
+    connected:boolean; platformKey:string; setPlatformKey:(v:string)=>void
+    show:boolean; setShow:(v:boolean)=>void
+    clivoKey:string; placeholder:string; hint:string
+  }>
+
+  const p = streamPlatforms[streamTab]
 
   return (
     <PageWrap>
@@ -1796,14 +1819,15 @@ function SettingsPage() {
         {/* ── 왼쪽: 연동 설정 ── */}
         <div className="flex-1 flex flex-col gap-3 min-h-0">
 
-          {/* 스트리밍 플랫폼 연동 */}
-          <Card className="p-4">
+          {/* 스트리밍 연동 — 탭 방식 */}
+          <Card className="p-4 flex-shrink-0">
             <div className="flex items-center gap-2 mb-1">
               <Wifi size={13} className="text-cyan-400"/>
               <span className="text-white/70 text-xs font-semibold">스트리밍 연동</span>
             </div>
-            {/* 릴레이 흐름 안내 */}
-            <div className="flex items-center gap-1.5 mb-4 bg-white/[0.03] rounded-lg px-3 py-2 border border-white/[0.06]">
+
+            {/* 릴레이 흐름 */}
+            <div className="flex items-center gap-1.5 mb-3 bg-white/[0.03] rounded-lg px-3 py-2 border border-white/[0.06]">
               <span className="text-white/40 text-[10px] font-mono">OBS</span>
               <span className="text-white/20 text-[10px]">→</span>
               <span className="text-accent-purple text-[10px] font-semibold">Clivo 서버</span>
@@ -1812,100 +1836,89 @@ function SettingsPage() {
               <span className="text-white/20 text-[9px] ml-auto">릴레이 방식</span>
             </div>
 
-            <div className="space-y-5">
-              {/* ── 치지직 ── */}
-              {([
-                {
-                  name:'치지직', icon:'◈', color:'#00d564', colorCls:'text-green-400',
-                  borderCls:'border-green-500/25', connected: !!chzKey,
-                  platformKey: chzKey, setPlatformKey: setChzKey,
-                  show: showChz, setShow: setShowChz,
-                  clivoKey: CLIVO_CHZ_KEY, placeholder:'치지직 스트림 키 붙여넣기',
-                  hint:'치지직 스튜디오 → 방송 설정 → 스트림 키',
-                },
-                {
-                  name:'SOOP', icon:'◉', color:'#ff6b35', colorCls:'text-orange-400',
-                  borderCls:'border-orange-500/20', connected: !!soopKey,
-                  platformKey: soopKey, setPlatformKey: setSoopKey,
-                  show: showSoop, setShow: setShowSoop,
-                  clivoKey: CLIVO_SOOP_KEY, placeholder:'SOOP 스트림 키 붙여넣기',
-                  hint:'SOOP 방송국 → 방송 설정 → 스트림 키',
-                },
-              ] as {
-                name:string; icon:string; color:string; colorCls:string; borderCls:string
-                connected:boolean; platformKey:string; setPlatformKey:(v:string)=>void
-                show:boolean; setShow:(v:boolean)=>void
-                clivoKey:string; placeholder:string; hint:string
-              }[]).map(p => (
-                <div key={p.name} className={`rounded-xl border p-3 ${p.borderCls}`}
-                  style={{background:'rgba(255,255,255,0.02)'}}>
-                  {/* 플랫폼 헤더 */}
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-base" style={{color:p.color}}>{p.icon}</span>
-                      <span className={`text-[11px] font-bold ${p.colorCls}`}>{p.name}</span>
-                    </div>
-                    <span className={`text-[9px] px-2 py-px rounded-full font-semibold ${
-                      p.connected
-                        ? 'text-green-400 bg-green-500/15 border border-green-500/25'
-                        : 'text-white/30 bg-white/[0.05] border border-white/[0.08]'
+            {/* 플랫폼 탭 */}
+            <div className="flex gap-1.5 mb-3">
+              {(['치지직', 'SOOP'] as const).map(tab => {
+                const info = streamPlatforms[tab]
+                const isActive = streamTab === tab
+                return (
+                  <button
+                    key={tab}
+                    onClick={() => setStreamTab(tab)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[10px] font-semibold transition-all ${
+                      isActive
+                        ? `${info.colorCls} border-current bg-white/[0.05]`
+                        : 'text-white/30 border-white/[0.08] hover:text-white/50'
+                    }`}
+                  >
+                    <span style={{color: isActive ? info.color : undefined}}>{info.icon}</span>
+                    {tab}
+                    <span className={`text-[8px] px-1.5 py-px rounded-full ml-0.5 ${
+                      info.connected
+                        ? 'text-green-400 bg-green-500/15'
+                        : 'text-white/25 bg-white/[0.06]'
                     }`}>
-                      {p.connected ? '● 연결됨' : '○ 미연결'}
+                      {info.connected ? '연결됨' : '미연결'}
                     </span>
-                  </div>
+                  </button>
+                )
+              })}
+            </div>
 
-                  {/* Step 1 */}
-                  <div className="mb-3">
-                    <div className="text-white/35 text-[9px] font-semibold mb-1.5 flex items-center gap-1.5">
-                      <span className="w-4 h-4 rounded-full bg-white/[0.08] flex items-center justify-center text-[8px] font-bold text-white/50">1</span>
-                      {p.name} 스트림 키 입력
-                    </div>
-                    <div className="flex items-center gap-2 bg-black/20 rounded-lg border border-white/[0.08] px-2.5 py-1.5">
-                      <input
-                        value={p.show ? p.platformKey : mask(p.platformKey)}
-                        onChange={e => p.setPlatformKey(e.target.value)}
-                        placeholder={p.placeholder}
-                        className="flex-1 bg-transparent text-white/55 text-[10px] font-mono outline-none placeholder:text-white/20"
-                      />
-                      <button onClick={() => p.setShow(!p.show)}
-                        className="text-white/25 text-[9px] hover:text-white/50 transition-colors flex-shrink-0">
-                        {p.show ? '숨김' : '표시'}
-                      </button>
-                    </div>
-                    <div className="text-white/20 text-[9px] mt-1 ml-0.5">{p.hint}</div>
-                  </div>
-
-                  {/* Step 2 */}
-                  <div>
-                    <div className="text-white/35 text-[9px] font-semibold mb-1.5 flex items-center gap-1.5">
-                      <span className="w-4 h-4 rounded-full bg-white/[0.08] flex items-center justify-center text-[8px] font-bold text-white/50">2</span>
-                      OBS에 아래 정보 입력
-                    </div>
-                    <div className={`space-y-1.5 ${!p.connected ? 'opacity-35 pointer-events-none' : ''}`}>
-                      {[
-                        { label:'RTMP 서버', value: CLIVO_RTMP },
-                        { label:'스트림 키', value: p.connected ? p.clivoKey : '스트림 키 입력 후 발급됩니다' },
-                      ].map(row => (
-                        <div key={row.label} className="flex items-center gap-2 bg-black/20 rounded-lg border border-white/[0.07] px-2.5 py-1.5">
-                          <span className="text-white/25 text-[9px] w-16 flex-shrink-0">{row.label}</span>
-                          <span className="text-white/55 text-[10px] font-mono flex-1 truncate">{row.value}</span>
-                          {p.connected && (
-                            <button onClick={() => copyText(row.value)}
-                              className="text-accent-purple/60 text-[9px] hover:text-accent-purple transition-colors flex-shrink-0">
-                              복사
-                            </button>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+            {/* 선택된 플랫폼 설정 */}
+            <div className={`rounded-xl border p-3 ${p.borderCls}`} style={{background:'rgba(255,255,255,0.02)'}}>
+              {/* Step 1 */}
+              <div className="mb-3">
+                <div className="text-white/35 text-[9px] font-semibold mb-1.5 flex items-center gap-1.5">
+                  <span className="w-4 h-4 rounded-full bg-white/[0.08] flex items-center justify-center text-[8px] font-bold text-white/50">1</span>
+                  {streamTab} 스트림 키 입력
                 </div>
-              ))}
+                <div className="flex items-center gap-2 bg-black/20 rounded-lg border border-white/[0.08] px-2.5 py-1.5">
+                  <input
+                    type={p.show ? 'text' : 'password'}
+                    value={p.platformKey}
+                    onChange={e => p.setPlatformKey(e.target.value)}
+                    placeholder={p.placeholder}
+                    className="flex-1 bg-transparent text-white/55 text-[10px] font-mono outline-none placeholder:text-white/20"
+                    style={{letterSpacing: p.show ? undefined : '0.12em'}}
+                  />
+                  <button onClick={() => p.setShow(!p.show)}
+                    className={`text-[9px] hover:text-white/60 transition-colors flex-shrink-0 ${p.show ? 'text-accent-purple/70' : 'text-white/25'}`}>
+                    {p.show ? '숨김' : '표시'}
+                  </button>
+                </div>
+                <div className="text-white/20 text-[9px] mt-1 ml-0.5">{p.hint}</div>
+              </div>
+
+              {/* Step 2 */}
+              <div>
+                <div className="text-white/35 text-[9px] font-semibold mb-1.5 flex items-center gap-1.5">
+                  <span className="w-4 h-4 rounded-full bg-white/[0.08] flex items-center justify-center text-[8px] font-bold text-white/50">2</span>
+                  OBS에 아래 정보 입력
+                </div>
+                <div className={`space-y-1.5 ${!p.connected ? 'opacity-35 pointer-events-none' : ''}`}>
+                  {[
+                    { label:'RTMP 서버', value: CLIVO_RTMP },
+                    { label:'스트림 키', value: p.connected ? p.clivoKey : '① 스트림 키 입력 후 자동 발급' },
+                  ].map(row => (
+                    <div key={row.label} className="flex items-center gap-2 bg-black/20 rounded-lg border border-white/[0.07] px-2.5 py-1.5">
+                      <span className="text-white/25 text-[9px] w-16 flex-shrink-0">{row.label}</span>
+                      <span className="text-white/55 text-[10px] font-mono flex-1 truncate">{row.value}</span>
+                      {p.connected && (
+                        <button onClick={() => copyText(row.value)}
+                          className="text-accent-purple/60 text-[9px] hover:text-accent-purple transition-colors flex-shrink-0">
+                          복사
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </Card>
 
           {/* 업로드 플랫폼 연동 */}
-          <Card className="p-4">
+          <Card className="p-4 flex-shrink-0">
             <div className="flex items-center gap-2 mb-3">
               <Link2 size={13} className="text-cyan-400"/>
               <span className="text-white/70 text-xs font-semibold">업로드 플랫폼 연동</span>
@@ -1917,22 +1930,22 @@ function SettingsPage() {
                 { name:'TikTok',  icon:'♪', color:'#69c9d0', connected:false },
                 { name:'치지직',  icon:'◈', color:'#00d564', connected:true  },
                 { name:'SOOP',    icon:'◉', color:'#ff6b35', connected:true  },
-              ] as {name:string;icon:string;color:string;connected:boolean}[]).map(p => (
-                <div key={p.name} className="flex items-center gap-2.5 bg-white/[0.03] rounded-xl border border-white/[0.06] px-3 py-2.5">
+              ] as {name:string;icon:string;color:string;connected:boolean}[]).map(pl => (
+                <div key={pl.name} className="flex items-center gap-2.5 bg-white/[0.03] rounded-xl border border-white/[0.06] px-3 py-2.5">
                   <div className="w-7 h-7 rounded-lg flex items-center justify-center text-sm flex-shrink-0"
-                    style={{background:p.color+'22', border:`1px solid ${p.color}44`}}>{p.icon}</div>
+                    style={{background:pl.color+'22', border:`1px solid ${pl.color}44`}}>{pl.icon}</div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-white/65 text-[10px] font-semibold">{p.name}</div>
-                    <div className={`text-[9px] ${p.connected?'text-green-400':'text-white/25'}`}>
-                      {p.connected ? '연결됨' : '연결안됨'}
+                    <div className="text-white/65 text-[10px] font-semibold">{pl.name}</div>
+                    <div className={`text-[9px] ${pl.connected?'text-green-400':'text-white/25'}`}>
+                      {pl.connected ? '연결됨' : '연결안됨'}
                     </div>
                   </div>
                   <button className={`text-[9px] px-2 py-1 rounded-lg border transition-colors flex-shrink-0 ${
-                    p.connected
+                    pl.connected
                       ? 'text-white/30 border-white/[0.08] hover:border-red-500/30 hover:text-red-400/70'
                       : 'text-accent-purple border-accent-purple/35 hover:bg-accent-purple/10'
                   }`}>
-                    {p.connected ? '해제' : '연결'}
+                    {pl.connected ? '해제' : '연결'}
                   </button>
                 </div>
               ))}
@@ -1955,32 +1968,41 @@ function SettingsPage() {
             ] as [string,string][]).map(([l,v]) => (
               <div key={l} className="flex justify-between py-1.5 border-b border-white/[0.05] last:border-0">
                 <span className="text-white/30 text-[10px]">{l}</span>
-                <span className="text-white/60 text-[10px] font-medium">{v}</span>
+                <span className="text-white/60 text-[10px] font-medium truncate max-w-[96px] text-right">{v}</span>
               </div>
             ))}
           </Card>
 
-          {/* AI 감지 설정 */}
+          {/* Clivo 플랜 */}
           <Card className="p-3">
             <div className="flex items-center gap-2 mb-2.5">
-              <Sliders size={11} className="text-green-400"/>
-              <span className="text-white/55 text-[11px] font-semibold">AI 감지 설정</span>
+              <Star size={11} className="text-yellow-400"/>
+              <span className="text-white/55 text-[11px] font-semibold">Clivo 플랜</span>
+              <span className="ml-auto text-[8px] px-1.5 py-px rounded-full bg-yellow-400/15 text-yellow-400 font-bold">Pro</span>
             </div>
+            {/* 사용량 바 */}
             {([
-              ['채팅 반응 민감도','85%','85%'],
-              ['최소 클립 길이',  '30초','50%'],
-              ['최대 클립 수',    '12개','80%'],
-            ] as [string,string,string][]).map(([l,v,w]) => (
-              <div key={l} className="mb-2.5 last:mb-0">
+              { label:'이번 달 방송', used:3,  total:20,  unit:'회',  color:'bg-accent-purple/70' },
+              { label:'클립 저장',    used:47, total:200, unit:'개',  color:'bg-cyan-400/70'       },
+              { label:'저장 공간',    used:14, total:50,  unit:'GB',  color:'bg-green-400/70'      },
+            ] as {label:string;used:number;total:number;unit:string;color:string}[]).map(item => (
+              <div key={item.label} className="mb-2.5 last:mb-0">
                 <div className="flex justify-between mb-1">
-                  <span className="text-white/35 text-[10px]">{l}</span>
-                  <span className="text-accent-purple text-[10px] font-bold">{v}</span>
+                  <span className="text-white/35 text-[10px]">{item.label}</span>
+                  <span className="text-white/50 text-[10px] font-mono">
+                    {item.used}<span className="text-white/25">/{item.total}{item.unit}</span>
+                  </span>
                 </div>
                 <div className="h-1 bg-white/[0.08] rounded-full overflow-hidden">
-                  <div className="h-full bg-accent-purple/70 rounded-full" style={{width:w}}/>
+                  <div className={`h-full rounded-full ${item.color}`}
+                    style={{width:`${Math.round(item.used/item.total*100)}%`}}/>
                 </div>
               </div>
             ))}
+            <div className="mt-3 pt-2.5 border-t border-white/[0.06] flex items-center justify-between">
+              <span className="text-white/25 text-[9px]">다음 결제</span>
+              <span className="text-white/45 text-[9px] font-mono">2025. 06. 12</span>
+            </div>
           </Card>
 
           {/* 알림 설정 */}
@@ -1993,8 +2015,8 @@ function SettingsPage() {
               <div key={l} className="flex justify-between items-center py-2 border-b border-white/[0.05] last:border-0">
                 <span className="text-white/45 text-[10px]">{l}</span>
                 <button
-                  onClick={() => setNotifs(p => ({...p, [l]: !p[l]}))}
-                  className={`w-7 h-3.5 rounded-full flex items-center px-0.5 transition-colors ${on?'bg-accent-purple':'bg-white/10'}`}
+                  onClick={() => setNotifs(prev => ({...prev, [l]: !prev[l]}))}
+                  className={`w-7 h-3.5 rounded-full flex items-center px-0.5 transition-colors flex-shrink-0 ${on?'bg-accent-purple':'bg-white/10'}`}
                 >
                   <div className={`w-2.5 h-2.5 rounded-full bg-white transition-transform ${on?'translate-x-3.5':''}`}/>
                 </button>
