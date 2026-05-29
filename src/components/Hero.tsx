@@ -71,7 +71,7 @@ export default function Hero() {
           className="text-text-muted text-base md:text-lg leading-relaxed max-w-xl break-keep"
           style={{ lineHeight: 1.75 }}
         >
-          AI가 실시간으로 채팅과 영상을 분석해 하이라이트 클립을 자동 감지·추출·업로드합니다.
+          <span className="whitespace-nowrap">AI가 실시간으로 채팅과 영상을 분석해 하이라이트 클립을 자동 감지·추출·업로드합니다.</span>
           <br className="hidden md:block" />
           치지직·SOOP 전용 — 편집자는 VOD를 처음부터 볼 필요가 없습니다.
         </motion.p>

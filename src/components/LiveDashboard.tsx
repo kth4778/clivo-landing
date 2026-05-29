@@ -144,7 +144,7 @@ function Card({ className='', children }: { className?: string; children: React.
 // ══════════════════════════════════════════════════════════
 // CLIP DETAIL MODAL
 // ══════════════════════════════════════════════════════════
-function ClipDetailModal({ clip, onClose }: { clip: Clip; onClose: () => void }) {
+function ClipDetailModal({ clip, onClose, onNav }: { clip: Clip; onClose: () => void; onNav: (nav: UploadNav) => void }) {
   const [editingTitle,    setEditingTitle]    = useState(false)
   const [title,           setTitle]           = useState(clip.title)
   const [tags,            setTags]            = useState([...clip.tags])
@@ -442,10 +442,10 @@ function ClipDetailModal({ clip, onClose }: { clip: Clip; onClose: () => void })
 
             {/* 하단 액션 */}
             <div className="flex gap-1.5 pt-1 border-t border-white/[0.06]">
-              <button className="flex-1 flex items-center justify-center gap-1 text-white/45 border border-white/[0.09] text-[10px] py-1.5 rounded-lg hover:border-accent-purple/40 hover:text-accent-purple transition-colors">
+              <button onClick={() => { onNav({ rank: clip.rank, tab: 'upload' }); onClose() }} className="flex-1 flex items-center justify-center gap-1 text-white/45 border border-white/[0.09] text-[10px] py-1.5 rounded-lg hover:border-accent-purple/40 hover:text-accent-purple transition-colors">
                 <Upload size={10}/> 업로드 페이지 →
               </button>
-              <button className="flex-1 flex items-center justify-center gap-1 text-white/45 border border-white/[0.09] text-[10px] py-1.5 rounded-lg hover:border-cyan-500/35 hover:text-cyan-400 transition-colors">
+              <button onClick={() => { onNav({ rank: clip.rank, tab: 'export' }); onClose() }} className="flex-1 flex items-center justify-center gap-1 text-white/45 border border-white/[0.09] text-[10px] py-1.5 rounded-lg hover:border-cyan-500/35 hover:text-cyan-400 transition-colors">
                 <Download size={10}/> 내보내기 페이지 →
               </button>
               <button className="flex items-center justify-center px-2.5 py-1.5 rounded-lg border border-white/[0.07] text-red-400/45 hover:border-red-500/30 hover:text-red-400 transition-colors">
@@ -908,7 +908,7 @@ function HighlightPage({ onNav }: { onNav: (nav: UploadNav) => void }) {
       {/* 상세 모달 */}
       <AnimatePresence>
         {selectedClip && (
-          <ClipDetailModal clip={selectedClip} onClose={() => setSelectedClip(null)}/>
+          <ClipDetailModal clip={selectedClip} onClose={() => setSelectedClip(null)} onNav={onNav}/>
         )}
       </AnimatePresence>
     </PageWrap>
@@ -918,7 +918,7 @@ function HighlightPage({ onNav }: { onNav: (nav: UploadNav) => void }) {
 // ══════════════════════════════════════════════════════════
 // PAGE 3: 실시간 분석
 // ══════════════════════════════════════════════════════════
-function AnalysisPage() {
+function AnalysisPage({ onNav }: { onNav: (nav: UploadNav) => void }) {
   const [elapsed, setElapsed] = useState(8073)
   useEffect(() => {
     const id = setInterval(() => setElapsed(e => e + 1), 1000)
@@ -993,10 +993,10 @@ function AnalysisPage() {
                   </div>
                 </div>
                 <div className="flex gap-1 flex-shrink-0">
-                  <button className="flex items-center gap-1 text-[9px] text-white/60 bg-white/[0.06] hover:bg-accent-purple/20 hover:text-accent-purple border border-white/[0.08] rounded-md px-2 py-1 transition-colors">
+                  <button onClick={() => onNav({ rank: clip.rank, tab: 'upload' })} className="flex items-center gap-1 text-[9px] text-white/60 bg-white/[0.06] hover:bg-accent-purple/20 hover:text-accent-purple border border-white/[0.08] rounded-md px-2 py-1 transition-colors">
                     <Upload size={8}/> 업로드
                   </button>
-                  <button className="flex items-center gap-1 text-[9px] text-white/60 bg-white/[0.06] hover:bg-cyan-500/15 hover:text-cyan-400 border border-white/[0.08] rounded-md px-2 py-1 transition-colors">
+                  <button onClick={() => onNav({ rank: clip.rank, tab: 'export' })} className="flex items-center gap-1 text-[9px] text-white/60 bg-white/[0.06] hover:bg-cyan-500/15 hover:text-cyan-400 border border-white/[0.08] rounded-md px-2 py-1 transition-colors">
                     <Download size={8}/> 내보내기
                   </button>
                 </div>
@@ -1050,6 +1050,10 @@ function ClipsPage({ onNav }: { onNav: (nav: UploadNav) => void }) {
   const [selectedClip,  setSelectedClip]  = useState<Clip | null>(null)
   const [sortBy,        setSortBy]        = useState<'score'|'date'>('score')
   const [sortOrder,     setSortOrder]     = useState<'desc'|'asc'>('desc')
+  const [dateFrom,      setDateFrom]      = useState<string>('전체')
+  const [dateTo,        setDateTo]        = useState<string>('전체')
+  const [calYear,       setCalYear]       = useState(2025)
+  const [calMonth,      setCalMonth]      = useState(5)
 
   const broadcasts = [
     { date:'2025.05.27', title:'발로란트 마스터 도전기 EP.12', platform:'치지직', dur:'7:03:15', viewers:'13,204', clips:12, status:'완료' },
@@ -1060,7 +1064,6 @@ function ClipsPage({ onNav }: { onNav: (nav: UploadNav) => void }) {
   ]
 
   const filterDefs = [
-    { id:'date',     label:'방송 날짜', opts:['전체','05.27','05.25','05.23'] },
     { id:'genre',    label:'게임 장르', opts:['전체','발로란트','리그오브레전드','기타'] },
     { id:'platform', label:'플랫폼',   opts:['전체','치지직','SOOP'] },
     { id:'score',    label:'점수 범위', opts:['전체','90~100점','80~89점','70~79점','60~69점'] },
@@ -1074,7 +1077,8 @@ function ClipsPage({ onNav }: { onNav: (nav: UploadNav) => void }) {
   const displayClips = ALL_CLIPS
     .filter(clip => {
       const f = activeFilters
-      if (f.date     && f.date     !== '전체' && clip.date     !== f.date)     return false
+      if (dateFrom !== '전체' && clip.date < dateFrom) return false
+      if (dateTo   !== '전체' && clip.date > dateTo)   return false
       if (f.genre    && f.genre    !== '전체' && clip.genre    !== f.genre)    return false
       if (f.platform && f.platform !== '전체' && clip.platform !== f.platform) return false
       if (f.score    && f.score    !== '전체') {
@@ -1090,13 +1094,36 @@ function ClipsPage({ onNav }: { onNav: (nav: UploadNav) => void }) {
       return sortOrder === 'desc' ? -cmp : cmp
     })
 
-  const activeFilterCount = Object.values(activeFilters).filter(v => v && v !== '전체').length
+  const dateRangeActive   = dateFrom !== '전체' || dateTo !== '전체'
+  const activeFilterCount = Object.values(activeFilters).filter(v => v && v !== '전체').length + (dateRangeActive ? 1 : 0)
 
   const closeAll = () => { setOpenFilter(null); setOpenMenu(null) }
 
   const handleSortClick = (by: 'score'|'date') => {
     if (sortBy === by) setSortOrder(o => o === 'desc' ? 'asc' : 'desc')
     else { setSortBy(by); setSortOrder('desc') }
+  }
+
+  // ── 달력 헬퍼 ──
+  const CAL_MONTHS   = ['January','February','March','April','May','June','July','August','September','October','November','December']
+  const calDaysInMon = new Date(calYear, calMonth, 0).getDate()
+  const calFirstDow  = new Date(calYear, calMonth - 1, 1).getDay()
+  const calToDot     = (m: number, d: number) => `${String(m).padStart(2,'0')}.${String(d).padStart(2,'0')}`
+  const calCells: (number|null)[] = [
+    ...Array(calFirstDow).fill(null),
+    ...Array.from({length: calDaysInMon}, (_, i) => i + 1),
+  ]
+  while (calCells.length % 7 !== 0) calCells.push(null)
+
+  const prevCalMonth = () => { if(calMonth===1){setCalMonth(12);setCalYear(y=>y-1)}else setCalMonth(m=>m-1) }
+  const nextCalMonth = () => { if(calMonth===12){setCalMonth(1);setCalYear(y=>y+1)}else setCalMonth(m=>m+1) }
+  const handleCalDay = (dot: string) => {
+    if (dateFrom==='전체' || (dateFrom!=='전체' && dateTo!=='전체')) {
+      setDateFrom(dot); setDateTo('전체')
+    } else {
+      if (dot >= dateFrom) { setDateTo(dot) } else { setDateTo(dateFrom); setDateFrom(dot) }
+      setOpenFilter(null)
+    }
   }
 
   return (
@@ -1176,7 +1203,7 @@ function ClipsPage({ onNav }: { onNav: (nav: UploadNav) => void }) {
                 <tbody>
                   {broadcasts.map(b => (
                     <tr key={b.date+b.title} className="border-b border-white/[0.04] hover:bg-white/[0.02] cursor-pointer"
-                      onClick={() => { setViewTab('clips'); setActiveFilters({ date: b.date.slice(5).replace('.','.') }) }}>
+                      onClick={() => { const d = b.date.slice(5); setViewTab('clips'); setActiveFilters({}); setDateFrom(d); setDateTo(d) }}>
                       <td className="px-4 py-2.5 text-white/40">{b.date}</td>
                       <td className="px-4 py-2.5 text-white/70 font-medium max-w-[200px] truncate">{b.title}</td>
                       <td className="px-4 py-2.5">
@@ -1203,6 +1230,107 @@ function ClipsPage({ onNav }: { onNav: (nav: UploadNav) => void }) {
       <div className="px-5 pt-2 pb-2 flex-shrink-0" onClick={closeAll}>
         <div className="flex items-center gap-2">
           <Filter size={10} className={`flex-shrink-0 ${activeFilterCount > 0 ? 'text-accent-purple/70' : 'text-white/30'}`}/>
+
+          {/* 날짜 범위 필터 */}
+          <div className="relative" onClick={e => e.stopPropagation()}>
+            <button
+              onClick={() => setOpenFilter(openFilter === 'dateRange' ? null : 'dateRange')}
+              className={`flex items-center gap-1.5 text-[10px] px-2.5 py-1.5 rounded-lg border transition-colors ${
+                dateRangeActive
+                  ? 'text-accent-purple border-accent-purple/40 bg-accent-purple/10'
+                  : 'text-white/40 border-white/[0.08] bg-white/[0.03] hover:text-white/60'
+              }`}
+            >
+              {dateRangeActive
+                ? `${dateFrom === '전체' ? '전체' : dateFrom} ~ ${dateTo === '전체' ? '전체' : dateTo}`
+                : '방송 날짜'}
+              <ChevronDown size={8} className={`transition-transform ${openFilter==='dateRange'?'rotate-180':''}`}/>
+            </button>
+            {openFilter === 'dateRange' && (
+              <div className="absolute left-0 top-full mt-1 z-30 rounded-xl shadow-2xl overflow-hidden"
+                style={{background:'#131325', border:'1px solid rgba(255,255,255,0.12)', width:'240px'}}>
+
+                {/* 선택된 날짜 표시 */}
+                <div className="flex items-center gap-2 px-3 pt-3 pb-2.5 border-b border-white/[0.07]">
+                  <div className={`flex-1 text-center text-[9px] font-mono px-2 py-1.5 rounded-lg border ${
+                    dateFrom !== '전체'
+                      ? 'text-white/80 border-accent-purple/45 bg-accent-purple/10'
+                      : 'text-white/20 border-white/[0.07] bg-white/[0.03]'
+                  }`}>
+                    {dateFrom !== '전체' ? `2025.${dateFrom}` : '시작일'}
+                  </div>
+                  <span className="text-white/20 text-[9px] flex-shrink-0">~</span>
+                  <div className={`flex-1 text-center text-[9px] font-mono px-2 py-1.5 rounded-lg border ${
+                    dateTo !== '전체'
+                      ? 'text-white/80 border-accent-purple/45 bg-accent-purple/10'
+                      : 'text-white/20 border-white/[0.07] bg-white/[0.03]'
+                  }`}>
+                    {dateTo !== '전체' ? `2025.${dateTo}` : '종료일'}
+                  </div>
+                </div>
+
+                {/* 월 헤더 */}
+                <div className="flex items-center justify-between px-4 py-2" style={{background:'#7c3aed'}}>
+                  <button onClick={prevCalMonth}
+                    className="text-white/70 hover:text-white text-[11px] transition-colors w-5 h-5 flex items-center justify-center rounded hover:bg-white/10">
+                    ◀
+                  </button>
+                  <span className="text-white text-[10px] font-bold tracking-wide">
+                    {CAL_MONTHS[calMonth - 1]} {calYear}
+                  </span>
+                  <button onClick={nextCalMonth}
+                    className="text-white/70 hover:text-white text-[11px] transition-colors w-5 h-5 flex items-center justify-center rounded hover:bg-white/10">
+                    ▶
+                  </button>
+                </div>
+
+                {/* 요일 헤더 */}
+                <div className="grid grid-cols-7 px-2 pt-2 pb-1">
+                  {['Su','Mo','Tu','We','Th','Fr','Sa'].map(d => (
+                    <div key={d} className="text-center text-[8px] text-white/30 font-semibold">{d}</div>
+                  ))}
+                </div>
+
+                {/* 날짜 그리드 */}
+                <div className="grid grid-cols-7 px-2 pb-3 gap-y-0.5">
+                  {calCells.map((day, idx) => {
+                    if (!day) return <div key={`e${idx}`}/>
+                    const dot    = calToDot(calMonth, day)
+                    const isFrom = dot === dateFrom
+                    const isTo   = dot === dateTo
+                    const inRng  = dateFrom !== '전체' && dateTo !== '전체' && dot > dateFrom && dot < dateTo
+                    return (
+                      <button
+                        key={day}
+                        onClick={() => handleCalDay(dot)}
+                        className={`flex items-center justify-center h-6 text-[9px] transition-all rounded-full ${
+                          isFrom || isTo
+                            ? 'bg-accent-purple text-white font-bold shadow-lg'
+                            : inRng
+                              ? 'bg-accent-purple/20 text-accent-purple/80 rounded-none'
+                              : 'text-white/55 hover:bg-white/[0.08] hover:text-white/80'
+                        }`}
+                      >
+                        {day}
+                      </button>
+                    )
+                  })}
+                </div>
+
+                {/* 초기화 */}
+                {dateRangeActive && (
+                  <div className="px-3 pb-2.5 pt-1 border-t border-white/[0.06]">
+                    <button
+                      onClick={() => { setDateFrom('전체'); setDateTo('전체') }}
+                      className="w-full text-[9px] text-white/30 hover:text-white/60 transition-colors">
+                      선택 초기화
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
           {filterDefs.map(f => (
             <div key={f.id} className="relative" onClick={e => e.stopPropagation()}>
               <button
@@ -1233,7 +1361,7 @@ function ClipsPage({ onNav }: { onNav: (nav: UploadNav) => void }) {
           {/* 필터 초기화 */}
           {activeFilterCount > 0 && (
             <button
-              onClick={() => { setActiveFilters({}); closeAll() }}
+              onClick={() => { setActiveFilters({}); setDateFrom('전체'); setDateTo('전체'); closeAll() }}
               className="flex items-center gap-1 text-[10px] text-white/35 hover:text-white/60 transition-colors ml-auto"
             >
               <RotateCcw size={9}/> 초기화
@@ -1248,7 +1376,7 @@ function ClipsPage({ onNav }: { onNav: (nav: UploadNav) => void }) {
             <Filter size={28}/>
             <p className="text-[12px]">조건에 맞는 클립이 없습니다</p>
             <button
-              onClick={() => setActiveFilters({})}
+              onClick={() => { setActiveFilters({}); setDateFrom('전체'); setDateTo('전체') }}
               className="text-[11px] text-accent-purple/70 hover:text-accent-purple transition-colors mt-1"
             >필터 초기화</button>
           </div>
@@ -1365,7 +1493,7 @@ function ClipsPage({ onNav }: { onNav: (nav: UploadNav) => void }) {
 
       <AnimatePresence>
         {selectedClip && (
-          <ClipDetailModal clip={selectedClip} onClose={() => setSelectedClip(null)}/>
+          <ClipDetailModal clip={selectedClip} onClose={() => setSelectedClip(null)} onNav={onNav}/>
         )}
       </AnimatePresence>
     </PageWrap>
@@ -1506,7 +1634,7 @@ function UploadPage({ initialNav }: { initialNav: UploadNav | null }) {
       </div>
 
       {activeTab === 'upload' ? (
-        <div className="flex-1 px-5 pt-3 pb-4 flex flex-col gap-3 min-h-0 overflow-hidden">
+        <div className="flex-1 px-5 pt-3 pb-4 flex flex-col gap-3 min-h-0 overflow-y-auto [&::-webkit-scrollbar]:w-[3px] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-accent-purple/35 [&::-webkit-scrollbar-track]:bg-transparent">
 
           {/* ① 업로드 플랫폼 선택 */}
           <div className="flex-shrink-0">
@@ -1931,95 +2059,290 @@ function UploadPage({ initialNav }: { initialNav: UploadNav | null }) {
 // PAGE 5: 성과 분석
 // ══════════════════════════════════════════════════════════
 function PerformancePage() {
-  const fmtN = (n: number) => n >= 1000000 ? `${(n/1000000).toFixed(1)}M` : n >= 1000 ? `${(n/1000).toFixed(0)}K` : `${n}`
+  const [hoveredDay, setHoveredDay] = useState<number | null>(null)
+  const [showAll,    setShowAll]    = useState(false)
+
+  const fmtN = (n: number) =>
+    n >= 1_000_000 ? `${(n/1_000_000).toFixed(1)}M`
+    : n >= 1_000   ? `${(n/1_000).toFixed(0)}K`
+    : `${n}`
 
   const platforms = [
-    { name:'YouTube', icon:'▶', color:'#ff0000', clips:12, views:850000, likes:18200 },
-    { name:'TikTok',  icon:'♪', color:'#69c9d0', clips:8,  views:250000, likes:4200  },
-    { name:'치지직',  icon:'◈', color:'#00d564', clips:15, views:120000, likes:1100  },
-    { name:'SOOP',    icon:'◉', color:'#ff6b35', clips:5,  views:45000,  likes:890   },
+    { name:'YouTube', icon:'▶', color:'#ff0000', clips:12, views:850_000, likes:18_200, pct:65.4 },
+    { name:'TikTok',  icon:'♪', color:'#69c9d0', clips:8,  views:250_000, likes:4_200,  pct:19.2 },
+    { name:'치지직',  icon:'◈', color:'#00d564', clips:15, views:120_000, likes:1_100,  pct:9.2  },
+    { name:'SOOP',    icon:'◉', color:'#ff6b35', clips:5,  views:45_000,  likes:890,    pct:3.5  },
   ]
   const totalViews = platforms.reduce((s,p) => s+p.views, 0)
   const totalLikes = platforms.reduce((s,p) => s+p.likes, 0)
   const totalClips = platforms.reduce((s,p) => s+p.clips, 0)
 
-  const weeklyViews = [42,68,55,89,73,112,95]
-  const maxW = Math.max(...weeklyViews)
+  // 멀티라인 차트 데이터
   const weekDays = ['월','화','수','목','금','토','일']
+  const weeklyData: Record<string,number[]> = {
+    YouTube: [55,72,68,85,92,112,88],
+    TikTok:  [35,48,42,58,65,78,62],
+    '치지직': [28,34,30,42,45,52,40],
+    SOOP:    [8,12,10,16,18,22,18],
+  }
+  const platColors: Record<string,string> = {
+    YouTube:'#ff0000', TikTok:'#69c9d0', '치지직':'#00d564', SOOP:'#ff6b35',
+  }
+  const CHART_MAX = 140
 
-  const topClips = [
-    { rank:1, title:'극적인 역전 순간!',   platform:'YouTube', pColor:'#ff0000', views:312000, likes:8400, daysAgo:1 },
-    { rank:2, title:'보조킬 완벽 타이밍', platform:'TikTok',  pColor:'#69c9d0', views:187000, likes:3200, daysAgo:1 },
-    { rank:3, title:'연속 킬 폭발!',      platform:'YouTube', pColor:'#ff0000', views:143000, likes:4100, daysAgo:0 },
-    { rank:1, title:'극적인 역전 순간!',   platform:'치지직',  pColor:'#00d564', views:98000,  likes:820,  daysAgo:1 },
-    { rank:4, title:'전설 아이템 획득!',  platform:'TikTok',  pColor:'#69c9d0', views:63000,  likes:1000, daysAgo:0 },
+  // 도넛 차트 계산
+  const donutR = 32, donutSW = 9, donutCircum = 2 * Math.PI * donutR
+  let _cum = 0
+  const donutSlices = platforms.map(p => {
+    const pct = p.views / totalViews
+    const slice = { color:p.color, pct, rotation: _cum * 360 - 90 }
+    _cum += pct
+    return slice
+  })
+
+  // KPI 스파크라인 데이터
+  const kpiCards = [
+    { label:'총 조회수',   icon:'👁', value:fmtN(totalViews),                        growth:'+23%', color:'#7c3aed', gid:'v', d:[820,950,880,1100,1050,1250,1300] },
+    { label:'총 좋아요',   icon:'♡',  value:fmtN(totalLikes),                        growth:'+18%', color:'#f43f5e', gid:'l', d:[180,220,200,280,260,300,240]      },
+    { label:'업로드 클립', icon:'⬆',  value:`${totalClips}개`,                       growth:'+12%', color:'#3b82f6', gid:'c', d:[32,35,34,37,38,40,40]             },
+    { label:'평균 조회수', icon:'↗',  value:fmtN(Math.round(totalViews/totalClips)), growth:'+15%', color:'#06b6d4', gid:'a', d:[28,30,29,32,30,33,32]             },
   ]
+
+  // 상위 클립 데이터
+  const allTopClips = [
+    { rank:1, title:'극적인 역전 순간!',  platform:'YouTube', pColor:'#ff0000', views:312_000, likes:8_400, daysAgo:1, score:98, dur:'00:45', sp:[10,18,28,42,38,52,46,58,54,60,56,62] },
+    { rank:2, title:'보조킬 완벽 타이밍',platform:'TikTok',  pColor:'#69c9d0', views:187_000, likes:3_200, daysAgo:1, score:92, dur:'00:38', sp:[5,10,16,24,22,30,28,36,34,40,38,42]  },
+    { rank:3, title:'연속 킬 폭발!',     platform:'YouTube', pColor:'#ff0000', views:143_000, likes:4_100, daysAgo:0, score:94, dur:'00:51', sp:[8,14,20,18,26,30,28,34,36,40,42,44]  },
+    { rank:1, title:'극적인 역전 순간!',  platform:'치지직',  pColor:'#00d564', views:98_000,  likes:820,   daysAgo:1, score:90, dur:'00:47', sp:[4,8,12,16,14,20,18,24,26,28,30,34]   },
+    { rank:4, title:'전설 아이템 획득!', platform:'TikTok',  pColor:'#69c9d0', views:63_000,  likes:1_000, daysAgo:0, score:88, dur:'00:42', sp:[3,6,8,10,12,14,13,17,18,20,22,24]    },
+    { rank:5, title:'좀비 대량 학살!!',  platform:'SOOP',    pColor:'#ff6b35', views:45_000,  likes:650,   daysAgo:2, score:85, dur:'00:33', sp:[2,4,6,8,9,11,10,14,14,17,16,20]      },
+  ]
+  const visibleClips = showAll ? allTopClips : allTopClips.slice(0, 4)
+
+  // SVG 경로 생성 (베지어 곡선)
+  const mkPath = (data: number[], w: number, h: number, fill: boolean, maxV?: number) => {
+    const mx = maxV ?? Math.max(...data)
+    const pts = data.map((v,i): [number,number] => [i/(data.length-1)*w, h - (v/mx)*h*0.85 + h*0.05])
+    let d = `M ${pts[0][0]} ${pts[0][1]}`
+    for (let i=1;i<pts.length;i++) {
+      const [px,py]=pts[i-1],[cx,cy]=pts[i],mx2=(px+cx)/2
+      d += ` C ${mx2} ${py} ${mx2} ${cy} ${cx} ${cy}`
+    }
+    if (fill) d += ` L ${w} ${h} L 0 ${h} Z`
+    return d
+  }
 
   return (
     <PageWrap>
+      {/* 헤더 */}
       <div className="px-5 pt-4 pb-2 flex-shrink-0 flex items-center justify-between">
         <div>
           <h3 className="text-white font-bold text-sm">성과 분석</h3>
           <p className="text-white/35 text-[11px]">업로드된 클립의 플랫폼별 성과</p>
         </div>
-        <div className="flex items-center gap-1.5 bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-1.5">
+        <div className="flex items-center gap-1.5 bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-1.5 cursor-pointer hover:border-white/15 transition-colors">
           <Calendar size={11} className="text-white/30"/>
           <span className="text-white/40 text-[11px]">최근 30일</span>
+          <ChevronDown size={9} className="text-white/25"/>
         </div>
       </div>
 
-      <div className="flex-1 px-5 pb-4 flex flex-col gap-3 min-h-0">
+      <div className="flex-1 px-5 pb-4 flex flex-col gap-3 min-h-0 overflow-y-auto [&::-webkit-scrollbar]:w-[3px] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-accent-purple/35 [&::-webkit-scrollbar-track]:bg-transparent">
 
-        {/* 상단 지표 */}
+        {/* ── KPI 4개 ── */}
         <div className="grid grid-cols-4 gap-3 flex-shrink-0">
-          {([
-            { label:'총 조회수',   value:fmtN(totalViews),                       sub:'+23% 지난달 대비', color:'text-cyan-400'    },
-            { label:'총 좋아요',   value:fmtN(totalLikes),                       sub:'전 플랫폼 합산',   color:'text-pink-400'    },
-            { label:'업로드 클립', value:`${totalClips}개`,                      sub:'4개 플랫폼',       color:'text-accent-purple'},
-            { label:'평균 조회수', value:fmtN(Math.round(totalViews/totalClips)),sub:'클립 1개 기준',    color:'text-green-400'   },
-          ] as {label:string;value:string;sub:string;color:string}[]).map(s => (
-            <Card key={s.label} className="p-3">
-              <div className="text-white/35 text-[10px] mb-1">{s.label}</div>
-              <div className={`text-xl font-bold ${s.color}`}>{s.value}</div>
-              <div className="text-white/25 text-[9px] mt-0.5">{s.sub}</div>
+          {kpiCards.map(kpi => (
+            <Card key={kpi.label} className="p-3 overflow-hidden">
+              <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[11px]">{kpi.icon}</span>
+                  <span className="text-white/45 text-[10px]">{kpi.label}</span>
+                </div>
+              </div>
+              <div className="font-bold text-[22px] leading-none mb-1.5" style={{color:kpi.color}}>{kpi.value}</div>
+              <div className="flex items-center gap-1 mb-2.5">
+                <span className="text-green-400 text-[9px] font-semibold">↗ {kpi.growth}</span>
+                <span className="text-white/25 text-[9px]">지난달 대비</span>
+              </div>
+              <svg viewBox="0 0 80 22" width="100%" height="22" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id={`kg${kpi.gid}`} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={kpi.color} stopOpacity=".4"/>
+                    <stop offset="100%" stopColor={kpi.color} stopOpacity=".02"/>
+                  </linearGradient>
+                </defs>
+                <path d={mkPath(kpi.d, 80, 22, true)}  fill={`url(#kg${kpi.gid})`}/>
+                <path d={mkPath(kpi.d, 80, 22, false)} fill="none" stroke={kpi.color} strokeWidth="1.5"/>
+              </svg>
             </Card>
           ))}
         </div>
 
-        {/* 주간 그래프 + 플랫폼별 */}
+        {/* ── 클립 성과 추이 + 플랫폼별 성과 ── */}
         <div className="flex gap-3 flex-shrink-0">
-          <Card className="flex-1 p-3">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-white/55 text-[11px] font-semibold">주간 조회수 추이</span>
-              <span className="text-white/25 text-[9px]">단위: 천 회</span>
-            </div>
-            <div className="flex items-end gap-1.5 h-[76px]">
-              {weeklyViews.map((v, i) => (
-                <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                  <span className="text-white/30 text-[8px]">{v}</span>
-                  <div className="w-full rounded-t-sm"
-                    style={{
-                      height:`${(v/maxW)*52}px`, minHeight:'4px',
-                      background: i===5 ? '#7c3aed' : i===6 ? 'rgba(124,58,237,0.55)' : 'rgba(124,58,237,0.28)',
-                    }}/>
-                  <span className="text-white/25 text-[8px]">{weekDays[i]}</span>
+
+          {/* 멀티라인 차트 */}
+          <Card className="flex-1 p-3.5">
+            <div className="flex items-center justify-between mb-2.5">
+              <div>
+                <div className="text-white/70 text-[11px] font-bold mb-1.5">클립 성과 추이</div>
+                <div className="flex items-center gap-3">
+                  {Object.keys(platColors).map(name => (
+                    <div key={name} className="flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full" style={{background:platColors[name]}}/>
+                      <span className="text-white/35 text-[9px]">{name}</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              </div>
+              <div className="flex items-center gap-1.5 bg-white/[0.04] border border-white/[0.08] rounded-lg px-2.5 py-1.5">
+                <span className="text-white/40 text-[10px]">주간</span>
+                <ChevronDown size={8} className="text-white/25"/>
+              </div>
+            </div>
+
+            <div className="relative" onMouseLeave={() => setHoveredDay(null)}>
+              <div className="flex">
+                {/* Y축 */}
+                <div className="flex flex-col justify-between text-right pr-1.5 flex-shrink-0" style={{width:'28px',height:'100px'}}>
+                  {[140,105,70,35,0].map(v => (
+                    <span key={v} className="text-white/20 text-[8px] leading-none">{v>0?`${v}K`:0}</span>
+                  ))}
+                </div>
+                {/* 차트 + X축 */}
+                <div className="flex-1 min-w-0">
+                  <svg
+                    viewBox="0 0 400 100"
+                    width="100%" height="100"
+                    preserveAspectRatio="none"
+                    className="cursor-crosshair"
+                    onMouseMove={e => {
+                      const r = e.currentTarget.getBoundingClientRect()
+                      setHoveredDay(Math.min(6, Math.max(0, Math.round((e.clientX - r.left) / r.width * 6))))
+                    }}
+                  >
+                    <defs>
+                      {Object.keys(platColors).map(name => (
+                        <linearGradient key={name} id={`lg${name}`} x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor={platColors[name]} stopOpacity=".22"/>
+                          <stop offset="100%" stopColor={platColors[name]} stopOpacity=".01"/>
+                        </linearGradient>
+                      ))}
+                    </defs>
+                    {/* 격자 */}
+                    {[25,50,75].map(y => (
+                      <line key={y} x1="0" y1={y} x2="400" y2={y} stroke="rgba(255,255,255,0.05)" strokeWidth="1"/>
+                    ))}
+                    {/* 호버 수직선 */}
+                    {hoveredDay !== null && (
+                      <line x1={hoveredDay/6*400} y1={0} x2={hoveredDay/6*400} y2={100}
+                        stroke="rgba(255,255,255,0.18)" strokeWidth="1" strokeDasharray="3 2"/>
+                    )}
+                    {/* 각 플랫폼 라인 */}
+                    {Object.entries(weeklyData).map(([name, vals]) => {
+                      const col = platColors[name]
+                      const fillD = mkPath(vals,400,100,true,CHART_MAX)
+                      const lineD = mkPath(vals,400,100,false,CHART_MAX)
+                      return (
+                        <g key={name}>
+                          <path d={fillD} fill={`url(#lg${name})`}/>
+                          <path d={lineD} fill="none" stroke={col} strokeWidth="1.5"
+                            style={{filter:`drop-shadow(0 0 3px ${col}88)`}}/>
+                          {hoveredDay !== null && (() => {
+                            const v  = vals[hoveredDay]
+                            const x  = hoveredDay/6*400
+                            const y  = 100 - (v/CHART_MAX)*100*0.85 + 100*0.05
+                            return <circle key="dot" cx={x} cy={y} r={3} fill={col} stroke="white" strokeWidth="1.5"
+                              style={{filter:`drop-shadow(0 0 4px ${col})`}}/>
+                          })()}
+                        </g>
+                      )
+                    })}
+                  </svg>
+                  {/* X축 */}
+                  <div className="flex justify-between mt-1 px-0.5">
+                    {weekDays.map((d,i) => (
+                      <span key={d} className={`text-[9px] transition-colors ${hoveredDay===i?'text-white/80 font-semibold':'text-white/25'}`}>{d}</span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* 호버 툴팁 */}
+              {hoveredDay !== null && (
+                <div
+                  className="absolute top-0 pointer-events-none z-20"
+                  style={{
+                    left: `calc(${hoveredDay/6*100}% + 32px)`,
+                    transform: hoveredDay >= 5 ? 'translateX(-112%)' : 'translateX(8px)',
+                  }}
+                >
+                  <div className="bg-[#16162a] border border-white/[0.14] rounded-xl px-3 py-2.5 shadow-xl"
+                    style={{minWidth:'120px'}}>
+                    <div className="text-white/50 text-[9px] font-semibold mb-2">{weekDays[hoveredDay]}요일</div>
+                    {Object.entries(weeklyData).map(([name, vals]) => (
+                      <div key={name} className="flex items-center gap-1.5 mb-1 last:mb-0">
+                        <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{background:platColors[name]}}/>
+                        <span className="text-white/50 text-[9px]">{name}</span>
+                        <span className="text-white/85 text-[9px] font-bold ml-auto">{vals[hoveredDay]}K</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </Card>
 
-          <Card className="w-52 flex-shrink-0 p-3">
-            <span className="text-white/55 text-[11px] font-semibold block mb-3">플랫폼별 성과</span>
+          {/* 플랫폼별 성과 */}
+          <Card className="w-56 flex-shrink-0 p-3.5">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-white/70 text-[11px] font-bold">플랫폼별 성과</span>
+              <span className="text-white/25 text-[9px]">총 조회수 비중</span>
+            </div>
+
+            {/* 도넛 + 범례 */}
+            <div className="flex items-center gap-3 mb-3.5">
+              <div className="relative flex-shrink-0" style={{width:'76px',height:'76px'}}>
+                <svg viewBox="0 0 100 100" width="76" height="76" style={{transform:'rotate(-90deg)'}}>
+                  {donutSlices.map((s,i) => (
+                    <circle key={i} cx="50" cy="50" r={donutR}
+                      fill="none" stroke={s.color} strokeWidth={donutSW}
+                      strokeDasharray={`${s.pct*donutCircum} ${donutCircum*(1-s.pct)}`}
+                      style={{transform:`rotate(${s.rotation}deg)`,transformOrigin:'50px 50px'}}/>
+                  ))}
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center" style={{transform:'none'}}>
+                  <span className="text-white font-bold text-[11px] leading-tight">{fmtN(totalViews)}</span>
+                  <span className="text-white/30 text-[8px]">총 조회수</span>
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                {platforms.map(p => (
+                  <div key={p.name} className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full flex-shrink-0" style={{background:p.color}}/>
+                    <span className="text-white/45 text-[9px]">{p.name}</span>
+                    <span className="text-[9px] font-bold ml-auto" style={{color:p.color}}>{p.pct}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 플랫폼별 바 */}
             <div className="space-y-2.5">
               {platforms.map(p => (
                 <div key={p.name}>
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[10px]" style={{color:p.color}}>{p.icon}</span>
-                      <span className="text-white/55 text-[10px]">{p.name}</span>
-                      <span className="text-white/25 text-[9px]">{p.clips}개</span>
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="w-6 h-6 rounded-lg flex items-center justify-center text-sm flex-shrink-0"
+                      style={{background:p.color+'22', border:`1px solid ${p.color}44`}}>{p.icon}</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-baseline justify-between">
+                        <div>
+                          <span className="text-white/65 text-[10px] font-semibold">{p.name}</span>
+                          <span className="text-white/25 text-[8px] ml-1">{p.clips}개</span>
+                        </div>
+                        <span className="text-[11px] font-bold" style={{color:p.color}}>{fmtN(p.views)}</span>
+                      </div>
                     </div>
-                    <span className="text-white/55 text-[10px] font-semibold">{fmtN(p.views)}</span>
                   </div>
                   <div className="h-1 bg-white/[0.06] rounded-full overflow-hidden">
                     <div className="h-full rounded-full" style={{width:`${p.views/totalViews*100}%`, background:p.color+'cc'}}/>
@@ -2030,45 +2353,96 @@ function PerformancePage() {
           </Card>
         </div>
 
-        {/* 상위 클립 성과 테이블 */}
-        <Card className="flex-1 flex flex-col min-h-0">
-          <div className="px-4 py-2.5 border-b border-white/[0.06] flex-shrink-0">
-            <span className="text-white/55 text-xs font-semibold">상위 클립 성과</span>
-          </div>
-          <div className="flex-1 overflow-hidden">
-            <table className="w-full text-[11px]">
-              <thead>
-                <tr className="border-b border-white/[0.05]">
-                  {['클립','플랫폼','조회수','좋아요','업로드'].map(h => (
-                    <th key={h} className="px-4 py-2 text-left text-white/30 font-medium">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {topClips.map((c,i) => (
-                  <tr key={i} className="border-b border-white/[0.04] hover:bg-white/[0.02]">
-                    <td className="px-4 py-2.5">
-                      <div className="flex items-center gap-2">
-                        <div className="relative flex-shrink-0 rounded overflow-hidden" style={{width:'40px',aspectRatio:'16/9'}}>
-                          <img src={THUMB_IMGS[(c.rank-1)%THUMB_IMGS.length]} alt={c.title}
-                            className="absolute inset-0 w-full h-full object-cover" draggable={false}/>
+        {/* ── 상위 클립 성과 ── */}
+        <div className="flex-shrink-0">
+          <div className="text-white/70 text-xs font-bold mb-3">상위 클립 성과</div>
+          <div className="grid grid-cols-2 gap-3">
+            {visibleClips.map((c, idx) => (
+              <Card key={idx} className="p-3"
+                style={idx===0 ? {
+                  borderColor:'rgba(124,58,237,0.55)',
+                  boxShadow:'0 0 0 1px rgba(124,58,237,0.2), 0 0 16px rgba(124,58,237,0.06)',
+                } : {}}>
+                {/* 상단: 썸네일 + 메타 */}
+                <div className="flex gap-3 mb-3">
+                  <div className="relative flex-shrink-0 rounded-xl overflow-hidden" style={{width:'90px',aspectRatio:'16/9'}}>
+                    <img src={THUMB_IMGS[(c.rank-1)%THUMB_IMGS.length]} alt={c.title}
+                      className="absolute inset-0 w-full h-full object-cover" draggable={false}/>
+                    <div className="absolute bottom-1 left-1 flex items-center gap-0.5 bg-black/70 px-1 py-0.5 rounded text-white text-[7px]">
+                      <Play size={6} fill="white" className="text-white flex-shrink-0"/>{c.dur}
+                    </div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-white/85 text-[11px] font-bold leading-snug mb-1.5">{c.title}</div>
+                    <span className="inline-block text-[8px] px-1.5 py-0.5 rounded-full font-semibold mb-2"
+                      style={{color:c.pColor, background:c.pColor+'22'}}>{c.platform}</span>
+                    <div className="grid grid-cols-3 gap-1">
+                      {([
+                        ['조회수',  fmtN(c.views),  'text-cyan-400'],
+                        ['좋아요',  fmtN(c.likes),  'text-pink-400/80'],
+                        ['업로드',  c.daysAgo===0?'오늘':`${c.daysAgo}일 전`, 'text-white/45'],
+                      ] as [string,string,string][]).map(([l,v,cl]) => (
+                        <div key={l}>
+                          <div className="text-white/30 text-[8px]">{l}</div>
+                          <div className={`${cl} text-[10px] font-bold`}>{v}</div>
                         </div>
-                        <span className="text-white/65 font-medium truncate max-w-[130px]">{c.title}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-2.5">
-                      <span className="text-[9px] px-1.5 py-0.5 rounded-full font-medium"
-                        style={{color:c.pColor, background:c.pColor+'22'}}>{c.platform}</span>
-                    </td>
-                    <td className="px-4 py-2.5 text-cyan-400 font-semibold">{fmtN(c.views)}</td>
-                    <td className="px-4 py-2.5 text-pink-400/80">{fmtN(c.likes)}</td>
-                    <td className="px-4 py-2.5 text-white/35">{c.daysAgo===0?'오늘':`${c.daysAgo}일 전`}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 하단: 미니 차트 + 점수 배지 */}
+                <div className="flex items-end gap-2">
+                  <div className="flex-1 min-w-0">
+                    {/* Y 레이블 */}
+                    <div className="flex justify-between text-[7px] text-white/15 mb-0.5">
+                      <span>40K</span><span>20K</span><span>0</span>
+                    </div>
+                    <svg viewBox="0 0 200 38" width="100%" height="38" preserveAspectRatio="none">
+                      <defs>
+                        <linearGradient id={`cg${idx}`} x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor={c.pColor} stopOpacity=".45"/>
+                          <stop offset="100%" stopColor={c.pColor} stopOpacity=".02"/>
+                        </linearGradient>
+                      </defs>
+                      <path d={mkPath(c.sp, 200, 38, true)}  fill={`url(#cg${idx})`}/>
+                      <path d={mkPath(c.sp, 200, 38, false)} fill="none" stroke={c.pColor} strokeWidth="1.5"
+                        style={{filter:`drop-shadow(0 0 3px ${c.pColor}88)`}}/>
+                    </svg>
+                    {/* X 레이블 */}
+                    <div className="flex justify-between text-[7px] text-white/15 mt-0.5">
+                      {['0시','4시','8시','12시','16시','20시','24시'].map(t => <span key={t}>{t}</span>)}
+                    </div>
+                  </div>
+
+                  {/* 점수 배지 */}
+                  <div className="flex-shrink-0 flex flex-col items-center justify-center rounded-full w-[52px] h-[52px] border-2 transition-all"
+                    style={{
+                      borderColor: c.score>=95?'#7c3aed':c.score>=90?'rgba(124,58,237,0.7)':'rgba(124,58,237,0.45)',
+                      background: c.score>=95?'rgba(124,58,237,0.25)':'rgba(124,58,237,0.1)',
+                      boxShadow: c.score>=95?'0 0 14px rgba(124,58,237,0.45)':'none',
+                    }}>
+                    <span className="text-accent-purple font-bold text-[13px] leading-none">{c.score}점</span>
+                    <span className="text-white/25 text-[6px] mt-0.5 text-center leading-tight">하이라이트<br/>점수</span>
+                  </div>
+                </div>
+              </Card>
+            ))}
           </div>
-        </Card>
+
+          {/* 더 많은 클립 보기 버튼 */}
+          <div className="flex justify-center mt-3.5">
+            <button
+              onClick={() => setShowAll(v => !v)}
+              className="flex items-center gap-1.5 px-6 py-2 rounded-full border border-accent-purple/45 text-accent-purple/80 text-[10px] font-semibold hover:bg-accent-purple/10 hover:text-accent-purple hover:border-accent-purple/70 transition-all"
+              style={{boxShadow:'0 0 12px rgba(124,58,237,0.12)'}}
+            >
+              {showAll ? '접기' : '더 많은 클립 보기'}
+              <ChevronDown size={10} className={`transition-transform duration-200 ${showAll?'rotate-180':''}`}/>
+            </button>
+          </div>
+        </div>
+
       </div>
     </PageWrap>
   )
@@ -2357,7 +2731,7 @@ export default function LiveDashboard() {
 
   const pageComponents: Record<Page, React.ReactNode> = {
     highlight:   <HighlightPage onNav={navigateToUpload} />,
-    analysis:    <AnalysisPage />,
+    analysis:    <AnalysisPage onNav={navigateToUpload} />,
     clips:       <ClipsPage onNav={navigateToUpload} />,
     upload:      <UploadPage initialNav={uploadNav} />,
     performance: <PerformancePage />,
