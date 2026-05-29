@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useInView } from '@/hooks/useInView'
 import img27 from '@/assets/image 27.png'
@@ -23,7 +23,7 @@ import {
 } from 'lucide-react'
 
 // ── Types ─────────────────────────────────────────────────
-type Page = 'highlight' | 'analysis' | 'clips' | 'upload' | 'performance' | 'settings'
+type Page = 'highlight' | 'clips' | 'upload' | 'performance' | 'settings'
 type UploadNav = { rank: number; tab: 'upload' | 'export' }
 
 type Clip = {
@@ -43,8 +43,7 @@ type Clip = {
 
 // ── Mock data ─────────────────────────────────────────────
 const NAV: { icon: React.ElementType; label: string; page: Page; badge?: string }[] = [
-  { icon: Zap,         label: '하이라이트',        page: 'highlight',   badge: 'Beta' },
-  { icon: BarChart2,   label: '실시간 분석',        page: 'analysis' },
+  { icon: BarChart2,   label: '실시간 분석',        page: 'highlight' },
   { icon: Film,        label: '방송 & 클립',        page: 'clips' },
   { icon: Upload,      label: '업로드 & 내보내기',  page: 'upload' },
   { icon: TrendingUp,  label: '성과 분석',          page: 'performance' },
@@ -92,6 +91,86 @@ const ALL_CLIPS: Clip[] = [
 ]
 
 const CLIPS = ALL_CLIPS.slice(0, 4)
+
+// ── 실시간 분석 로그 이벤트 ─────────────────────────────────
+type LogEntry = { pos: number; time: string; type: 'info' | 'chat' | 'detect' | 'extract'; clip?: number; msg: string }
+
+const LOG_EVENTS: LogEntry[] = [
+  { pos:  5, time:'00:21:07', type:'info',    msg:'AI 분석 세션 시작 — 채팅·영상 동시 모니터링 중' },
+  { pos: 12, time:'00:50:33', type:'chat',    msg:'채팅 속도 상승 감지 (320건/분)' },
+  { pos: 17, time:'01:10:55', type:'detect',  clip:8, msg:'클립 #8 후보 감지 — 채팅 반응 49점, 경계 분석 중...' },
+  { pos: 19, time:'01:19:40', type:'extract', clip:8, msg:'클립 #8 추출 완료 · 01:10:55–01:13:02 · #반전 자동 태깅' },
+  { pos: 23, time:'01:38:22', type:'chat',    msg:'채팅 속도 상승 (612건/분)' },
+  { pos: 25, time:'01:47:22', type:'detect',  clip:2, msg:'클립 #2 후보 감지 — 채팅 반응 72점, 경계 분석 중...' },
+  { pos: 27, time:'01:53:11', type:'extract', clip:2, msg:'클립 #2 추출 완료 · 01:47:22–01:50:10 · #보스전 #완벽타이밍 자동 태깅' },
+  { pos: 33, time:'02:18:05', type:'info',    msg:'영상 패턴 분석: 빠른 액션 시퀀스 집중 감지 모드 전환' },
+  { pos: 36, time:'02:33:22', type:'detect',  clip:6, msg:'클립 #6 후보 감지 — 채팅 반응 57점, 경계 분석 중...' },
+  { pos: 38, time:'02:40:15', type:'extract', clip:6, msg:'클립 #6 추출 완료 · 02:33:22–02:35:00 · #생존 자동 태깅' },
+  { pos: 44, time:'03:06:18', type:'chat',    msg:'채팅 폭발적 증가 — 1,247건/분 (세션 최고치)' },
+  { pos: 47, time:'03:18:45', type:'detect',  clip:1, msg:'클립 #1 후보 감지 — 채팅 반응 81점, 최우선 처리 중...' },
+  { pos: 49, time:'03:24:03', type:'extract', clip:1, msg:'클립 #1 추출 완료 · 03:18:45–03:21:59 · #역전 #채팅폭발 자동 태깅' },
+  { pos: 58, time:'04:03:18', type:'chat',    msg:'채팅 반응 상승 (782건/분)' },
+  { pos: 60, time:'04:12:33', type:'detect',  clip:3, msg:'클립 #3 후보 감지 — 채팅 반응 68점, 경계 분석 중...' },
+  { pos: 62, time:'04:18:44', type:'extract', clip:3, msg:'클립 #3 추출 완료 · 04:12:33–04:14:48 · #연속킬 #스킬연계 자동 태깅' },
+  { pos: 68, time:'04:43:33', type:'info',    msg:'감정 분석: 긍정 반응 키워드 비율 87% — 품질 상위 구간 진입' },
+  { pos: 70, time:'04:58:10', type:'detect',  clip:7, msg:'클립 #7 후보 감지 — 채팅 반응 52점, 경계 분석 중...' },
+  { pos: 72, time:'05:03:22', type:'extract', clip:7, msg:'클립 #7 추출 완료 · 04:58:10–05:00:25 · #팀플 자동 태깅' },
+]
+
+// ── 클립별 채팅 로그 (상위 메시지) ────────────────────────
+type ChatMsg = { user: string; msg: string; highlight?: boolean }
+const CLIP_CHAT_MSGS: Record<number, ChatMsg[]> = {
+  1: [
+    { user:'채팅맨123',    msg:'오 역전이다!!! 진짜??',        highlight:true  },
+    { user:'GameLover99',  msg:'GGGGGG 이거 클립각',           highlight:true  },
+    { user:'뚝배기99',     msg:'와 개쩐다 ㄹㅇ',               highlight:true  },
+    { user:'user_1847',    msg:'하이라이트 확정 ㄷㄷ',         highlight:true  },
+    { user:'밤낮없이',     msg:'채팅 미쳤다 ㅋㅋㅋ',           highlight:false },
+    { user:'streamfan',    msg:'이 장면 꼭 잘라줘',            highlight:false },
+    { user:'겜잘알',       msg:'소름 돋았다 진짜',             highlight:false },
+    { user:'낮잠냥이',     msg:'ㅋㅋㅋㅋ 소름 ㄷㄷ',          highlight:false },
+  ],
+  2: [
+    { user:'pro_viewer',   msg:'타이밍 미쳤다 저게 되네',      highlight:true  },
+    { user:'게임왕',       msg:'완벽한 보조킬 ㄷㄷ',           highlight:true  },
+    { user:'chatking',     msg:'이게 바로 클립각이지',         highlight:true  },
+    { user:'user_5521',    msg:'ㅋㅋ 개잘함',                  highlight:false },
+    { user:'매일방송',     msg:'타이밍 보소 진짜',             highlight:false },
+    { user:'fan2025',      msg:'유튜브 올려줘!!',              highlight:false },
+  ],
+  3: [
+    { user:'킬마스터',     msg:'연속킬 ㄷㄷㄷ 개쩐다',        highlight:true  },
+    { user:'gamer777',     msg:'스킬 연계 미쳤다',             highlight:true  },
+    { user:'viewer_22',    msg:'GG GG GG',                     highlight:false },
+    { user:'밤샘방송',     msg:'개잘해 이거 클립 뜨겠다',      highlight:false },
+  ],
+  4: [
+    { user:'아이템러버',   msg:'전설템이다!!! 와',             highlight:true  },
+    { user:'운빨겜',       msg:'와 전설 ㄷㄷ 축하해요',        highlight:true  },
+    { user:'loot_fan',     msg:'드디어 획득 ㅋㅋ',             highlight:false },
+    { user:'game_pro',     msg:'부럽다 진짜',                  highlight:false },
+  ],
+  5: [
+    { user:'콤보왕',       msg:'콤보 미쳤다ㅋㅋ',              highlight:true  },
+    { user:'viewer_x',     msg:'이게 되네 ㄹㅇ 신기',          highlight:false },
+    { user:'game_f',       msg:'화려하다',                     highlight:false },
+  ],
+  6: [
+    { user:'생존왕',       msg:'살았다 ㄷㄷ 심장 쫄렸다',      highlight:true  },
+    { user:'아슬아슬',     msg:'아 심장아 진짜',               highlight:false },
+    { user:'user_332',     msg:'ㅋㅋ 아슬했다',                highlight:false },
+  ],
+  7: [
+    { user:'팀플러',       msg:'팀원 구하다니 ㄷ 진짜 팀플',   highlight:true  },
+    { user:'teamwork99',   msg:'이게 진짜 팀게임이지',         highlight:false },
+    { user:'viewer_m',     msg:'훈훈하다 ㅋㅋ',               highlight:false },
+  ],
+  8: [
+    { user:'반전러',       msg:'이게 가능해?? 반전 ㄷ',        highlight:true  },
+    { user:'surprise_gm',  msg:'반전 미쳤다 소름',             highlight:false },
+    { user:'user_91',      msg:'예상 못했다 ㄹㅇ',             highlight:false },
+  ],
+}
 
 // ── Helpers ───────────────────────────────────────────────
 function fmtSecs(s: number) {
@@ -562,111 +641,543 @@ function CommonSidebar({ onNavigate }: { onNavigate: (p: Page) => void }) {
 
 
 // ══════════════════════════════════════════════════════════
-// PAGE 2: 하이라이트 (interactive graph + hover sync + modal)
+// CLIP LOG MODAL — 클립 추출 분석 로그
 // ══════════════════════════════════════════════════════════
-function HighlightPage({ onNav }: { onNav: (nav: UploadNav) => void }) {
-  const [openMenu,     setOpenMenu]     = useState<number | null>(null)
-  const [hoveredClip,  setHoveredClip]  = useState<number | null>(null)
-  const [graphPos,     setGraphPos]     = useState<number | null>(null)  // 0~1
-  const [selectedClip, setSelectedClip] = useState<Clip | null>(null)
+function ClipLogModal({ clip, onClose, onNav }: { clip: Clip; onClose: () => void; onNav: (nav: UploadNav) => void }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClose])
 
-  // 그래프 마우스 위치에서 수치 계산
-  const waveIdx   = graphPos !== null ? Math.min(79, Math.floor(graphPos * 80)) : 0
-  const hoverWave = WAVE[waveIdx]
-  const hoverTime = graphPos !== null ? fmtSecs(Math.floor(graphPos * TOTAL_SECS)) : ''
-  const hoverChat = Math.round(hoverWave * 80)   // /80점 만점
-  const hoverVid  = Math.round(hoverWave * 20)   // /20점 만점
-  const hoverTotal= hoverChat + hoverVid          // /100점 만점
+  const detectEntry  = LOG_EVENTS.find(e => e.clip === clip.rank && e.type === 'detect')
+  const extractEntry = LOG_EVENTS.find(e => e.clip === clip.rank && e.type === 'extract')
+  // 추출 과정 4단계
+  const steps = [
+    { time: detectEntry?.time  ?? '--:--:--', label:'채팅 급증 감지',    color:'text-cyan-400',   dot:'bg-cyan-400'   },
+    { time: detectEntry?.time  ?? '--:--:--', label:'클립 후보 선정',    color:'text-purple-400', dot:'bg-accent-purple' },
+    { time: extractEntry?.time ?? '--:--:--', label:'경계 분석 완료',    color:'text-yellow-400', dot:'bg-yellow-400' },
+    { time: extractEntry?.time ?? '--:--:--', label:'추출 · 태그 완료',  color:'text-green-400',  dot:'bg-green-400'  },
+  ]
 
-  // 클립 hover 시 그래프·타임라인에 표시할 SVG X (0~800)
-  const hClip = hoveredClip !== null ? CLIPS.find(c => c.rank === hoveredClip) : null
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/65 backdrop-blur-sm"
+      onClick={onClose}>
+      <motion.div
+        initial={{ opacity:0, scale:0.94, y:18 }}
+        animate={{ opacity:1, scale:1, y:0 }}
+        exit={{ opacity:0, scale:0.94, y:10 }}
+        transition={{ duration:0.2, ease:[0.22,1,0.36,1] }}
+        className="relative w-full max-w-[440px] rounded-2xl border border-white/10 shadow-2xl"
+        style={{ background:'#0f0f1e' }}
+        onClick={e => e.stopPropagation()}
+      >
+        {/* 닫기 */}
+        <button onClick={onClose}
+          className="absolute top-3 right-3 z-10 w-7 h-7 rounded-full bg-white/[0.06] hover:bg-white/[0.12] flex items-center justify-center transition-colors">
+          <X size={13} className="text-white/50"/>
+        </button>
+
+        <div className="p-4 space-y-3">
+          {/* 클립 헤더 */}
+          <div className="flex items-center gap-3">
+            <div className="relative w-[72px] flex-shrink-0 rounded-lg overflow-hidden" style={{ aspectRatio:'16/9' }}>
+              <img src={THUMB_IMGS[(clip.rank-1)%THUMB_IMGS.length]} alt={clip.title}
+                className="absolute inset-0 w-full h-full object-cover" draggable={false}/>
+              <div className="absolute bottom-1 right-1 bg-accent-purple text-white text-[8px] font-bold px-1.5 py-px rounded-full">
+                {clip.score}점
+              </div>
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-white/85 text-sm font-semibold leading-tight">{clip.title}</div>
+              <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                <span className="text-white/35 text-[9px]">{clip.dur}</span>
+                <span className="text-white/20 text-[9px]">·</span>
+                <span className="text-white/35 text-[9px]">{clip.platform}</span>
+                <span className="text-white/20 text-[9px]">·</span>
+                <span className="text-white/35 text-[9px] font-mono">{clip.time}</span>
+              </div>
+              <div className="flex flex-wrap gap-1 mt-1">
+                {clip.tags.map(t => (
+                  <span key={t} className="text-[8px] text-accent-purple/70 bg-accent-purple/10 px-1.5 py-px rounded-full">{t}</span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* 추출 타임라인 */}
+          <div className="rounded-xl border border-white/[0.07] overflow-hidden" style={{ background:'rgba(255,255,255,0.02)' }}>
+            <div className="px-3 py-2 border-b border-white/[0.06]">
+              <span className="text-white/45 text-[10px] font-semibold">클립 추출 과정</span>
+            </div>
+            <div className="p-3 relative">
+              <div className="absolute left-[18px] top-4 bottom-4 w-px bg-white/[0.07]"/>
+              <div className="space-y-3">
+                {steps.map((step, i) => (
+                  <motion.div key={i}
+                    initial={{ opacity:0, x:-6 }}
+                    animate={{ opacity:1, x:0 }}
+                    transition={{ delay: i * 0.08, duration:0.25 }}
+                    className="flex items-center gap-3">
+                    <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 z-10 ${step.dot}/80`}
+                      style={{ boxShadow:`0 0 6px ${step.dot.includes('cyan')?'rgba(6,182,212,0.5)':step.dot.includes('purple')?'rgba(124,58,237,0.5)':step.dot.includes('yellow')?'rgba(234,179,8,0.4)':'rgba(74,222,128,0.5)'}` }}/>
+                    <div className="flex-1 flex items-center justify-between">
+                      <span className={`text-[10px] font-semibold ${step.color}`}>{step.label}</span>
+                      <span className="text-white/30 text-[9px] font-mono">{step.time}</span>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* 점수 분석 */}
+          <div className="rounded-xl border border-white/[0.07] p-3" style={{ background:'rgba(255,255,255,0.02)' }}>
+            <div className="text-white/45 text-[10px] font-semibold mb-2">점수 분석</div>
+            <div className="space-y-2">
+              <div>
+                <div className="flex justify-between mb-1">
+                  <span className="text-white/40 text-[9px]">채팅 반응</span>
+                  <span className="text-cyan-400 text-[10px] font-bold">{clip.chatScore}<span className="text-white/25 text-[8px] font-normal">/80</span></span>
+                </div>
+                <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
+                  <div className="h-full bg-cyan-400/70 rounded-full" style={{ width:`${clip.chatScore}%` }}/>
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between mb-1">
+                  <span className="text-white/40 text-[9px]">영상 분석</span>
+                  <span className="text-purple-300 text-[10px] font-bold">{clip.videoScore}<span className="text-white/25 text-[8px] font-normal">/20</span></span>
+                </div>
+                <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
+                  <div className="h-full bg-purple-400/60 rounded-full" style={{ width:`${clip.videoScore * 5}%` }}/>
+                </div>
+              </div>
+              <div className="pt-1.5 border-t border-white/[0.06] flex justify-between items-center">
+                <span className="text-white/35 text-[9px]">종합 점수</span>
+                <span className="text-accent-purple text-base font-bold">{clip.score}<span className="text-white/25 text-[9px] font-normal ml-0.5">/100</span></span>
+              </div>
+            </div>
+          </div>
+
+          {/* 액션 버튼 */}
+          <div className="flex gap-2">
+            <button onClick={() => { onNav({ rank:clip.rank, tab:'upload' }); onClose() }}
+              className="flex-1 flex items-center justify-center gap-1.5 text-white/45 border border-white/[0.09] text-[10px] py-2 rounded-xl hover:border-accent-purple/40 hover:text-accent-purple transition-colors">
+              <Upload size={10}/> 업로드 페이지 →
+            </button>
+            <button onClick={() => { onNav({ rank:clip.rank, tab:'export' }); onClose() }}
+              className="flex-1 flex items-center justify-center gap-1.5 text-white/45 border border-white/[0.09] text-[10px] py-2 rounded-xl hover:border-cyan-500/35 hover:text-cyan-400 transition-colors">
+              <Download size={10}/> 내보내기 페이지 →
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  )
+}
+
+// ══════════════════════════════════════════════════════════
+// CLIP ANALYSIS MODAL — 상세 AI 분석 (채팅 로그 + 감지 근거)
+// ══════════════════════════════════════════════════════════
+function ClipAnalysisModal({ clip, onClose, onReanalyze }: {
+  clip: Clip
+  onClose: () => void
+  onReanalyze: (clip: Clip) => void
+}) {
+  const detectEntry  = LOG_EVENTS.find(e => e.clip === clip.rank && e.type === 'detect')
+  const extractEntry = LOG_EVENTS.find(e => e.clip === clip.rank && e.type === 'extract')
+  const nearbyChat   = LOG_EVENTS.filter(e => e.type === 'chat' && Math.abs(e.pos - clip.pos) < 15)
+
+  const msgs = CLIP_CHAT_MSGS[clip.rank] ?? []
+
+  const velocityBars = [0.18, 0.32, 0.52, 0.72, 1.0, 0.88, 0.62, 0.38].map(
+    v => v * (clip.chatScore / 80)
+  )
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClose])
+
+  const reasons = [
+    `채팅 속도 ${Math.round(clip.chatScore * 15.5)}건/분 — 임계치(300건/분) 돌파`,
+    clip.tags.length > 0 ? `핵심 키워드 감지: ${clip.tags.join(', ')}` : null,
+    `영상 패턴: 빠른 액션 시퀀스 ${clip.videoScore}프레임 감지`,
+    `감정 분석: 긍정 반응 ${Math.min(99, Math.round(70 + clip.chatScore * 0.3))}%`,
+  ].filter(Boolean) as string[]
+
+  const steps = [
+    { label:'채팅 급증 감지',   time: detectEntry?.time  ?? '--:--:--', dotCls:'bg-cyan-400',    glow:'rgba(6,182,212,0.55)'   },
+    { label:'클립 후보 선정',   time: detectEntry?.time  ?? '--:--:--', dotCls:'bg-accent-purple', glow:'rgba(124,58,237,0.55)' },
+    { label:'경계 분석 완료',   time: extractEntry?.time ?? '--:--:--', dotCls:'bg-yellow-400',  glow:'rgba(234,179,8,0.45)'   },
+    { label:'추출 · 태그 완료', time: extractEntry?.time ?? '--:--:--', dotCls:'bg-green-400',   glow:'rgba(74,222,128,0.55)'  },
+  ]
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/65 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ opacity:0, scale:0.94, y:18 }}
+        animate={{ opacity:1, scale:1, y:0 }}
+        exit={{ opacity:0, scale:0.94, y:10 }}
+        transition={{ duration:0.2, ease:[0.22,1,0.36,1] }}
+        className="relative w-full max-w-[720px] rounded-2xl border border-white/10 shadow-2xl overflow-hidden"
+        style={{ background:'#0f0f1e' }}
+        onClick={e => e.stopPropagation()}
+      >
+        <button onClick={onClose}
+          className="absolute top-3 right-3 z-10 w-7 h-7 rounded-full bg-white/[0.06] hover:bg-white/[0.12] flex items-center justify-center transition-colors">
+          <X size={13} className="text-white/50"/>
+        </button>
+
+        {/* 헤더 */}
+        <div className="flex items-center gap-3 px-5 py-3.5 border-b border-white/[0.07]">
+          <div className="relative w-16 flex-shrink-0 rounded-lg overflow-hidden" style={{aspectRatio:'16/9'}}>
+            <img src={THUMB_IMGS[(clip.rank-1)%THUMB_IMGS.length]} alt={clip.title}
+              className="absolute inset-0 w-full h-full object-cover" draggable={false}/>
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="text-yellow-400 text-[10px]">♛{clip.rank}</span>
+              <span className="text-white/85 text-sm font-bold truncate">{clip.title}</span>
+            </div>
+            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+              <span className="text-white/35 text-[10px] font-mono">{clip.time}</span>
+              <span className="text-white/20 text-[9px]">·</span>
+              <span className="text-white/35 text-[10px]">{clip.dur}</span>
+              <span className="text-white/20 text-[9px]">·</span>
+              <span className="text-white/35 text-[10px]">{clip.platform}</span>
+            </div>
+          </div>
+          <div className="flex-shrink-0 flex flex-col items-center justify-center rounded-full w-12 h-12 border-2 border-accent-purple/70 bg-accent-purple/20"
+            style={{boxShadow:'0 0 12px rgba(124,58,237,0.4)'}}>
+            <span className="text-accent-purple font-bold text-sm leading-none">{clip.score}</span>
+            <span className="text-white/30 text-[7px]">점</span>
+          </div>
+        </div>
+
+        {/* 본문 2열 */}
+        <div className="flex" style={{maxHeight:'480px'}}>
+
+          {/* ── 좌: 분석 요약 ── */}
+          <div className="w-[268px] flex-shrink-0 border-r border-white/[0.06] p-4 flex flex-col gap-3 overflow-y-auto [&::-webkit-scrollbar]:w-[3px] [&::-webkit-scrollbar-thumb]:bg-accent-purple/30 [&::-webkit-scrollbar-track]:bg-transparent">
+
+            {/* AI 감지 근거 */}
+            <div>
+              <div className="text-white/50 text-[10px] font-semibold mb-2 flex items-center gap-1.5">
+                <Zap size={10} className="text-accent-purple"/> AI 감지 근거
+              </div>
+              <div className="space-y-1.5">
+                {reasons.map((r, i) => (
+                  <div key={i} className="flex items-start gap-2 rounded-lg bg-white/[0.03] border border-white/[0.06] px-2.5 py-1.5">
+                    <span className="text-accent-purple/60 text-[9px] mt-0.5 flex-shrink-0">→</span>
+                    <span className="text-white/55 text-[10px] leading-snug">{r}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 점수 분석 */}
+            <div className="rounded-xl border border-white/[0.07] p-3" style={{background:'rgba(255,255,255,0.02)'}}>
+              <div className="text-white/40 text-[10px] font-semibold mb-2">점수 분석</div>
+              <div className="space-y-2">
+                <div>
+                  <div className="flex justify-between mb-1">
+                    <span className="text-white/35 text-[9px]">채팅 반응</span>
+                    <span className="text-cyan-400 text-[10px] font-bold">{clip.chatScore}<span className="text-white/20 text-[8px]">/80</span></span>
+                  </div>
+                  <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
+                    <div className="h-full bg-cyan-400/70 rounded-full" style={{width:`${clip.chatScore}%`}}/>
+                  </div>
+                </div>
+                <div>
+                  <div className="flex justify-between mb-1">
+                    <span className="text-white/35 text-[9px]">영상 분석</span>
+                    <span className="text-purple-300 text-[10px] font-bold">{clip.videoScore}<span className="text-white/20 text-[8px]">/20</span></span>
+                  </div>
+                  <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
+                    <div className="h-full bg-purple-400/60 rounded-full" style={{width:`${clip.videoScore*5}%`}}/>
+                  </div>
+                </div>
+                <div className="pt-1.5 border-t border-white/[0.05] flex justify-between">
+                  <span className="text-white/30 text-[9px]">종합</span>
+                  <span className="text-accent-purple text-sm font-bold">{clip.score}<span className="text-white/20 text-[8px]">/100</span></span>
+                </div>
+              </div>
+            </div>
+
+            {/* 추출 타임라인 */}
+            <div className="rounded-xl border border-white/[0.07] overflow-hidden" style={{background:'rgba(255,255,255,0.02)'}}>
+              <div className="px-3 py-2 border-b border-white/[0.06]">
+                <span className="text-white/40 text-[10px] font-semibold">추출 과정</span>
+              </div>
+              <div className="p-3 relative">
+                <div className="absolute left-[18px] top-4 bottom-4 w-px bg-white/[0.07]"/>
+                <div className="space-y-3">
+                  {steps.map((step, i) => (
+                    <motion.div key={i}
+                      initial={{opacity:0, x:-6}} animate={{opacity:1, x:0}}
+                      transition={{delay:i*0.07}}
+                      className="flex items-center gap-3">
+                      <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 z-10 ${step.dotCls}/80`}
+                        style={{boxShadow:`0 0 6px ${step.glow}`}}/>
+                      <div className="flex-1 flex items-center justify-between">
+                        <span className="text-white/55 text-[10px]">{step.label}</span>
+                        <span className="text-white/25 text-[9px] font-mono">{step.time}</span>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ── 우: 채팅 로그 ── */}
+          <div className="flex-1 p-4 flex flex-col gap-3 min-w-0 overflow-y-auto [&::-webkit-scrollbar]:w-[3px] [&::-webkit-scrollbar-thumb]:bg-accent-purple/30 [&::-webkit-scrollbar-track]:bg-transparent">
+
+            {/* 채팅 속도 바 */}
+            <div>
+              <div className="text-white/50 text-[10px] font-semibold mb-2 flex items-center gap-1.5">
+                <MessageSquare size={10} className="text-cyan-400"/> 채팅 반응 최고조 구간
+                <span className="ml-auto text-cyan-400/60 text-[9px] font-mono">{clip.time.split('–')[0]} ~</span>
+              </div>
+              <div className="flex items-end gap-0.5 h-8 bg-white/[0.03] rounded-lg px-2 py-1.5 border border-white/[0.06]">
+                {velocityBars.map((v, i) => (
+                  <div key={i} className="flex-1 rounded-sm transition-all"
+                    style={{
+                      height:`${Math.max(v*100, 5)}%`,
+                      background: i===4 ? '#06b6d4' : `rgba(6,182,212,${0.25+v*0.45})`,
+                      boxShadow: i===4 ? '0 0 6px rgba(6,182,212,0.8)' : undefined,
+                    }}/>
+                ))}
+              </div>
+              <div className="flex justify-between text-[8px] text-white/20 mt-0.5 px-0.5">
+                <span>-4분</span><span className="text-cyan-400/50">피크</span><span>+4분</span>
+              </div>
+            </div>
+
+            {/* 채팅 메시지 목록 */}
+            <div className="flex-1 min-h-0">
+              <div className="text-white/40 text-[10px] font-semibold mb-2">
+                클립 구간 채팅 <span className="text-white/20 font-normal">({msgs.length}개)</span>
+              </div>
+              <div className="space-y-1.5">
+                {msgs.map((m, i) => (
+                  <motion.div key={i}
+                    initial={{opacity:0, x:6}} animate={{opacity:1, x:0}}
+                    transition={{delay:i*0.04}}
+                    className={`flex items-start gap-2 rounded-lg px-2.5 py-1.5 border ${
+                      m.highlight
+                        ? 'border-cyan-500/30 bg-cyan-500/[0.06]'
+                        : 'border-white/[0.05] bg-white/[0.02]'
+                    }`}>
+                    <span className={`text-[8px] mt-0.5 flex-shrink-0 ${m.highlight ? 'text-cyan-400' : 'text-white/20'}`}>
+                      {m.highlight ? '●' : '·'}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <span className={`text-[9px] font-semibold mr-1.5 ${m.highlight ? 'text-cyan-400/80' : 'text-white/35'}`}>
+                        {m.user}
+                      </span>
+                      <span className={`text-[10px] ${m.highlight ? 'text-white/80' : 'text-white/45'}`}>{m.msg}</span>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* 관련 AI 이벤트 */}
+              {nearbyChat.length > 0 && (
+                <div className="mt-3 pt-2.5 border-t border-white/[0.05]">
+                  <div className="text-white/30 text-[9px] font-semibold mb-1.5">관련 AI 이벤트</div>
+                  <div className="space-y-1">
+                    {nearbyChat.map((e, i) => (
+                      <div key={i} className="flex items-center gap-2 px-2.5 py-1 rounded-lg border border-white/[0.05] bg-white/[0.02]">
+                        <span className="text-white/20 text-[9px] font-mono flex-shrink-0">{e.time}</span>
+                        <span className="text-cyan-400/55 text-[9px] truncate">{e.msg}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* 하단 액션 */}
+        <div className="flex items-center justify-between px-5 py-3 border-t border-white/[0.07]"
+          style={{background:'rgba(255,255,255,0.02)'}}>
+          <div className="flex flex-wrap gap-1">
+            {clip.tags.map(t => (
+              <span key={t} className="text-[9px] text-accent-purple/70 bg-accent-purple/10 border border-accent-purple/20 px-1.5 py-px rounded-full">{t}</span>
+            ))}
+          </div>
+          <div className="flex gap-2 flex-shrink-0">
+            <button onClick={onClose}
+              className="px-4 py-1.5 text-[11px] text-white/40 border border-white/[0.09] rounded-xl hover:border-white/20 hover:text-white/60 transition-colors">
+              닫기
+            </button>
+            <button onClick={() => { onReanalyze(clip); onClose() }}
+              className="flex items-center gap-1.5 px-4 py-1.5 text-[11px] font-bold text-accent-purple border border-accent-purple/40 rounded-xl hover:bg-accent-purple/15 transition-colors"
+              style={{boxShadow:'0 0 10px rgba(124,58,237,0.15)'}}>
+              <RotateCcw size={11}/> 재분석
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  )
+}
+
+// ══════════════════════════════════════════════════════════
+// PAGE 2: 실시간 분석 (live animated progress 20 → 80%)
+// ══════════════════════════════════════════════════════════
+function LiveAnalysisPage({ onNav, onReanalyze }: { onNav: (nav: UploadNav) => void; onReanalyze: (clip: Clip) => void }) {
+  const [progress,       setProgress]       = useState(20)
+  const [animDone,       setAnimDone]       = useState(false)
+  const [extraSecs,      setExtraSecs]      = useState(0)
+  const [openMenu,       setOpenMenu]       = useState<number | null>(null)
+  const [hoveredClip,    setHoveredClip]    = useState<number | null>(null)
+  const [graphPos,       setGraphPos]       = useState<number | null>(null)
+  const [selectedLogClip,setSelectedLogClip]= useState<Clip | null>(null)
+  const [showAnalysisModal,setShowAnalysisModal]= useState(false)
+  const logScrollRef = useRef<HTMLDivElement>(null)
+
+  // 20% → 80% 진행 애니메이션 (~22초)
+  useEffect(() => {
+    let intervalId: ReturnType<typeof setInterval>
+    const timeoutId = setTimeout(() => {
+      let cur = 20
+      intervalId = setInterval(() => {
+        cur = Math.min(cur + 60 / (22000 / 60), 80)
+        setProgress(cur)
+        if (cur >= 80) { setAnimDone(true); clearInterval(intervalId) }
+      }, 60)
+    }, 400)
+    return () => { clearTimeout(timeoutId); clearInterval(intervalId!) }
+  }, [])
+
+  // 애니메이션 완료 후 실시간 경과 타이머
+  useEffect(() => {
+    if (!animDone) return
+    const id = setInterval(() => setExtraSecs(s => s + 1), 1000)
+    return () => clearInterval(id)
+  }, [animDone])
+
+  const elapsedSecs   = Math.floor(progress / 100 * TOTAL_SECS) + extraSecs
+  const detectedClips = ALL_CLIPS.filter(c => c.pos <= progress).sort((a, b) => a.pos - b.pos)
+  const visibleLogs   = LOG_EVENTS.filter(e => e.pos <= progress)
+
+  // 새 로그 등장 시 자동 스크롤
+  useEffect(() => {
+    if (logScrollRef.current) {
+      logScrollRef.current.scrollTop = logScrollRef.current.scrollHeight
+    }
+  }, [visibleLogs.length])
+
+  // 그래프 끝 라이브 도트 위치
+  const liveWaveIdx = Math.min(79, Math.floor(progress / 100 * 80))
+  const liveDotX    = progress / 100 * 800
+  const liveDotY    = 68 - WAVE[liveWaveIdx] * 68 * 0.88
+
+  // 호버 인터랙션
+  const waveIdx    = graphPos !== null ? Math.min(79, Math.floor(graphPos * 80)) : 0
+  const hoverWave  = WAVE[waveIdx]
+  const hoverTime  = graphPos !== null ? fmtSecs(Math.floor(graphPos * TOTAL_SECS)) : ''
+  const hoverChat  = Math.round(hoverWave * 80)
+  const hoverVid   = Math.round(hoverWave * 20)
+  const hoverTotal = hoverChat + hoverVid
+  const hClip      = hoveredClip !== null ? detectedClips.find(c => c.rank === hoveredClip) : null
+
+  // 선택된 클립 기준 로그 필터
+  const filteredLogs = selectedLogClip
+    ? visibleLogs.filter(e =>
+        e.clip === selectedLogClip.rank ||
+        (e.type !== 'detect' && e.type !== 'extract' && Math.abs(e.pos - selectedLogClip.pos) < 14)
+      )
+    : visibleLogs
 
   return (
     <PageWrap>
-      <div className="flex items-start px-5 pt-4 pb-2 flex-shrink-0">
+      {/* 헤더 */}
+      <div className="px-5 pt-4 pb-2 flex-shrink-0 flex items-center justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <h3 className="text-white font-bold text-sm">하이라이트 감지 결과</h3>
-            <span className="text-[10px] bg-accent-purple/25 text-accent-purple px-2 py-px rounded-full font-semibold">Beta</span>
+            <h3 className="text-white font-bold text-sm">실시간 분석</h3>
+            {animDone ? (
+              <span className="flex items-center gap-1 text-[9px] bg-accent-purple/15 text-accent-purple border border-accent-purple/25 px-2 py-px rounded-full">
+                <span className="w-1.5 h-1.5 rounded-full bg-accent-purple animate-pulse"/>80% 분석 중
+              </span>
+            ) : (
+              <span className="flex items-center gap-1 text-[9px] bg-red-500/15 text-red-400 border border-red-500/25 px-2 py-px rounded-full">
+                <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-ping"/>LIVE 분석 중
+              </span>
+            )}
           </div>
-          <p className="text-white/35 text-[11px] mt-0.5">AI가 분석한 실시간 하이라이트 구간입니다</p>
+          <p className="text-white/35 text-[11px] mt-0.5">방송 중 AI가 실시간으로 하이라이트를 감지합니다</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 text-[11px] text-white/50 bg-white/[0.04] border border-white/[0.08] px-3 py-1.5 rounded-lg font-mono">
+            경과 <span className="text-white/75 font-bold">{fmtSecs(elapsedSecs)}</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-[11px] text-green-400 bg-green-500/10 border border-green-500/20 px-3 py-1.5 rounded-lg">
+            <Wifi size={11}/> 실시간 연결 중
+          </div>
         </div>
       </div>
 
-      <div className="flex-1 px-5 pb-4 flex flex-col gap-2.5 min-h-0">
+      {/* ── 스크롤 가능한 메인 콘텐츠 ── */}
+      <div className="flex-1 px-5 pb-4 flex flex-col gap-2.5 min-h-0 overflow-y-auto [&::-webkit-scrollbar]:w-[3px] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-accent-purple/35 [&::-webkit-scrollbar-track]:bg-transparent">
 
-        {/* ── 하이라이트 타임라인 ── */}
-        <Card className="p-3 flex-shrink-0">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-white/55 text-[11px] font-semibold">하이라이트 타임라인</span>
-            <div className="flex items-center gap-3 text-[10px] text-white/35">
-              {[['bg-accent-purple','매우 높음'],['bg-purple-500/50','높음'],['bg-purple-500/25','보통']].map(([c,l]) => (
-                <span key={l} className="flex items-center gap-1">
-                  <span className={`w-2 h-2 rounded-sm ${c}`}/>{l}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* 그래프와 동일한 flex 구조 — gap-3 + 112px 패널 자리까지 맞춤 */}
-          <div className="flex gap-3 items-start">
-            <div className="flex-1 min-w-0">
-              <div className="flex">
-                <div className="flex-shrink-0" style={{width:'22px'}}/>
-                <div className="flex-1 relative h-6 bg-white/[0.04] rounded overflow-hidden border border-white/[0.06]">
-                  {TIMELINE_SEGS.map((s,i) => (
-                    <div key={i}
-                      className="absolute top-0.5 bottom-0.5 rounded-sm transition-opacity"
-                      style={{
-                        left:`${s.l}%`, width:`${s.w}%`,
-                        opacity: hClip ? 0.35 : 1,
-                        background: s.lv===3?'#7c3aed':s.lv===2?'rgba(124,58,237,.55)':'rgba(124,58,237,.28)',
-                        boxShadow: s.lv===3?'0 0 8px rgba(124,58,237,.7)':undefined,
-                      }}
-                    />
-                  ))}
-                  {hClip && (() => {
-                    const { startPct, endPct } = parseClipPos(hClip.time)
-                    const w = Math.max(endPct - startPct, 0.8)
-                    return (
-                      <div className="absolute top-0 bottom-0 z-10 pointer-events-none transition-all"
-                        style={{
-                          left:`${startPct}%`, width:`${w}%`,
-                          background:'#a855f7', borderRadius:'3px',
-                          boxShadow:'0 0 12px rgba(168,85,247,1), 0 0 24px rgba(124,58,237,0.6)',
-                        }}
-                      />
-                    )
-                  })()}
+        {/* 스탯 카드 4개 */}
+        <div className="grid grid-cols-4 gap-2 flex-shrink-0">
+          {([
+            { label:'현재 시청자',     value:'13,204명', icon:Users,         color:'text-cyan-400'   },
+            { label:'분당 채팅',       value:'1,247건',  icon:MessageSquare, color:'text-purple-400' },
+            { label:'하이라이트 점수', value:'87점',     icon:Star,          color:'text-yellow-400' },
+            { label:'감지된 클립',     value:`${detectedClips.length}개`, icon:Zap, color:'text-green-400' },
+          ] as { label:string; value:string; icon:React.ElementType; color:string }[]).map(s => {
+            const Icon = s.icon
+            return (
+              <Card key={s.label} className="p-2.5">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <Icon size={11} className={s.color}/>
+                  <span className="text-white/35 text-[9px]">{s.label}</span>
                 </div>
-              </div>
-              <div className="flex justify-between text-[10px] text-white/25 mt-1" style={{paddingLeft:'22px'}}>
-                {['00:00:00','01:45:00','03:30:00','05:15:00'].map(t => <span key={t}>{t}</span>)}
-                <span className="text-accent-purple/60">07:03:15</span>
-              </div>
-            </div>
-            {/* 그래프 패널 자리 확보 — 가로길이 완전 일치 */}
-            <div className="flex-shrink-0" style={{width:'112px'}}/>
-          </div>
-        </Card>
+                <div className={`text-base font-bold ${s.color}`}>{s.value}</div>
+              </Card>
+            )
+          })}
+        </div>
 
-        {/* ── 채팅 반응 그래프 (인터랙티브) ── */}
+        {/* 채팅 반응 그래프 */}
         <Card className="p-3 flex-shrink-0">
-          <span className="text-white/55 text-[11px] font-semibold">채팅 반응 그래프</span>
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-white/55 text-[11px] font-semibold">채팅 반응 그래프</span>
+            <div className="flex items-center gap-2">
+              <span className="text-white/25 text-[9px]">분석 진행률</span>
+              <div className="w-16 h-1.5 bg-white/[0.07] rounded-full overflow-hidden">
+                <div className="h-full bg-accent-purple/70 rounded-full transition-all duration-100"
+                  style={{ width:`${progress}%` }}/>
+              </div>
+              <span className="text-accent-purple text-[9px] font-mono font-semibold">
+                {Math.round(progress)}%{animDone && <span className="text-accent-purple/50 ml-0.5 animate-pulse"> ●</span>}
+              </span>
+            </div>
+          </div>
 
-          <div className="flex gap-3 mt-2 items-start">
-            {/* ── 그래프 (flex-1) ── */}
+          <div className="flex gap-3 mt-1 items-start">
+            {/* SVG 그래프 */}
             <div className="flex-1 min-w-0">
-              <div className="relative" style={{height:'68px'}}>
-                {/* Y축 레이블 */}
-                <div className="absolute -left-1 top-0 bottom-0 flex flex-col justify-between text-[9px] text-white/20 pointer-events-none" style={{width:'22px'}}>
+              <div className="relative" style={{ height:'68px' }}>
+                <div className="absolute -left-1 top-0 bottom-0 flex flex-col justify-between text-[9px] text-white/20 pointer-events-none" style={{ width:'22px' }}>
                   <span>100</span><span>50</span><span>0</span>
                 </div>
-
-                {/* SVG + 마우스 이벤트 */}
                 <div
                   className="absolute inset-0 cursor-crosshair"
-                  style={{left:'22px'}}
+                  style={{ left:'22px' }}
                   onMouseMove={e => {
                     const r = e.currentTarget.getBoundingClientRect()
                     setGraphPos(Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)))
@@ -675,93 +1186,102 @@ function HighlightPage({ onNav }: { onNav: (nav: UploadNav) => void }) {
                 >
                   <svg width="100%" height="68" viewBox="0 0 800 68" preserveAspectRatio="none">
                     <defs>
-                      <linearGradient id="wg3" x1="0" y1="0" x2="0" y2="1">
+                      <linearGradient id="wgLive" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stopColor="#7c3aed" stopOpacity=".45"/>
                         <stop offset="100%" stopColor="#7c3aed" stopOpacity=".03"/>
                       </linearGradient>
+                      <clipPath id="liveWaveClip">
+                        <rect x="0" y="0" width={liveDotX} height="68"/>
+                      </clipPath>
                     </defs>
 
-                    {/* 격자선 */}
-                    {[0.33,0.66].map(f => (
+                    {[0.33, 0.66].map(f => (
                       <line key={f} x1="0" y1={68*f} x2="800" y2={68*f} stroke="rgba(255,255,255,.05)" strokeWidth="1"/>
                     ))}
 
-                    {/* 클립 hover 하이라이트 밴드 */}
                     {hClip && (
                       <g>
-                        <rect x={hClip.pos/100*800 - 32} y={0} width={64} height={68}
-                          fill="rgba(168,85,247,0.15)" rx={3}/>
-                        <line
-                          x1={hClip.pos/100*800} y1={0}
-                          x2={hClip.pos/100*800} y2={68}
+                        <rect x={hClip.pos/100*800 - 32} y={0} width={64} height={68} fill="rgba(168,85,247,0.15)" rx={3}/>
+                        <line x1={hClip.pos/100*800} y1={0} x2={hClip.pos/100*800} y2={68}
                           stroke="#a855f7" strokeWidth={1.5} strokeDasharray="4 3" opacity={0.75}/>
                       </g>
                     )}
 
-                    {/* 파형 fill & stroke */}
-                    <path d={buildPath(WAVE,800,68,true)} fill="url(#wg3)"/>
-                    <path d={buildPath(WAVE,800,68,false)} fill="none" stroke="#7c3aed" strokeWidth="1.5"/>
+                    {/* 파형 — progress%까지만 clipPath로 표시 */}
+                    <path d={buildPath(WAVE,800,68,true)}  fill="url(#wgLive)"  clipPath="url(#liveWaveClip)"/>
+                    <path d={buildPath(WAVE,800,68,false)} fill="none" stroke="#7c3aed" strokeWidth="1.5" clipPath="url(#liveWaveClip)"/>
 
-                    {/* 마우스 크로스헤어 + 추적 점만 — 툴팁은 우측 패널로 분리 */}
                     {graphPos !== null && (
                       <g>
-                        <line
-                          x1={graphPos*800} y1={0}
-                          x2={graphPos*800} y2={68}
+                        <line x1={graphPos*800} y1={0} x2={graphPos*800} y2={68}
                           stroke="rgba(255,255,255,0.22)" strokeWidth={1} strokeDasharray="3 2"/>
-                        <circle
-                          cx={graphPos*800}
-                          cy={68 - WAVE[waveIdx]*68*0.88}
-                          r={3.5} fill="#06b6d4"
-                          style={{filter:'drop-shadow(0 0 5px #06b6d4)'}}/>
+                        <circle cx={graphPos*800} cy={68 - WAVE[waveIdx]*68*0.88}
+                          r={3.5} fill="#06b6d4" style={{ filter:'drop-shadow(0 0 5px #06b6d4)' }}/>
+                      </g>
+                    )}
+
+                    {/* 진행 끝 라이브 펄스 도트 */}
+                    {!animDone ? (
+                      <g>
+                        <circle cx={liveDotX} cy={liveDotY} r="4" fill="rgba(124,58,237,0.35)">
+                          <animate attributeName="r" values="4;14;4" dur="1.2s" repeatCount="indefinite"/>
+                          <animate attributeName="opacity" values="0.6;0;0.6" dur="1.2s" repeatCount="indefinite"/>
+                        </circle>
+                        <circle cx={liveDotX} cy={liveDotY} r="4.5" fill="#7c3aed"
+                          style={{ filter:'drop-shadow(0 0 8px rgba(124,58,237,1))' }}/>
+                      </g>
+                    ) : (
+                      <g>
+                        <circle cx={liveDotX} cy={liveDotY} r="5" fill="rgba(168,85,247,0.2)">
+                          <animate attributeName="r" values="5;18;5" dur="2s" repeatCount="indefinite"/>
+                          <animate attributeName="opacity" values="0.5;0;0.5" dur="2s" repeatCount="indefinite"/>
+                        </circle>
+                        <circle cx={liveDotX} cy={liveDotY} r="4" fill="#a855f7"
+                          style={{ filter:'drop-shadow(0 0 10px rgba(168,85,247,1))' }}/>
+                        <text x={liveDotX + 8} y={liveDotY - 7}
+                          fill="#a855f7" fontSize="7" fontWeight="bold" fontFamily="monospace">
+                          LIVE
+                          <animate attributeName="opacity" values="1;0.25;1" dur="2s" repeatCount="indefinite"/>
+                        </text>
                       </g>
                     )}
                   </svg>
                 </div>
               </div>
-
-              <div className="flex justify-between text-[10px] text-white/25 mt-1" style={{paddingLeft:'22px'}}>
+              <div className="flex justify-between text-[10px] text-white/25 mt-1" style={{ paddingLeft:'22px' }}>
                 {['00:00:00','01:45:00','03:30:00','05:15:00'].map(t => <span key={t}>{t}</span>)}
                 <span className="text-accent-purple/60">07:03:15</span>
               </div>
             </div>
 
-            {/* ── 오른쪽 점수 패널 (그래프와 나란히) ── */}
-            <div
-              className="flex-shrink-0 rounded-xl border transition-all duration-150 overflow-hidden"
+            {/* 호버 점수 패널 */}
+            <div className="flex-shrink-0 rounded-xl border transition-all duration-150 overflow-hidden"
               style={{
-                width: '112px',
+                width:'112px',
                 opacity: graphPos !== null ? 1 : 0,
                 transform: graphPos !== null ? 'translateX(0)' : 'translateX(6px)',
-                pointerEvents: 'none',
-                background: '#131325',
-                borderColor: 'rgba(255,255,255,0.10)',
-                padding: '8px 10px',
-              }}
-            >
+                pointerEvents:'none',
+                background:'#131325',
+                borderColor:'rgba(255,255,255,0.10)',
+                padding:'8px 10px',
+              }}>
               <div className="text-white/35 text-[9px] font-mono font-semibold mb-2 tracking-wide">
                 {hoverTime || '──:──:──'}
               </div>
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <span className="text-white/40 text-[9px]">채팅 반응</span>
-                  <span className="text-cyan-400 text-[10px] font-bold">
-                    {hoverChat}<span className="text-white/25 text-[8px] font-normal">/80</span>
-                  </span>
+                  <span className="text-cyan-400 text-[10px] font-bold">{hoverChat}<span className="text-white/25 text-[8px] font-normal">/80</span></span>
                 </div>
                 <div className="h-0.5 bg-white/[0.07] rounded-full overflow-hidden">
-                  <div className="h-full bg-cyan-400/55 rounded-full transition-all duration-75"
-                    style={{width:`${hoverChat / 80 * 100}%`}}/>
+                  <div className="h-full bg-cyan-400/55 rounded-full transition-all duration-75" style={{ width:`${hoverChat/80*100}%` }}/>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-white/40 text-[9px]">영상 분석</span>
-                  <span className="text-purple-300 text-[10px] font-bold">
-                    {hoverVid}<span className="text-white/25 text-[8px] font-normal">/20</span>
-                  </span>
+                  <span className="text-purple-300 text-[10px] font-bold">{hoverVid}<span className="text-white/25 text-[8px] font-normal">/20</span></span>
                 </div>
                 <div className="h-0.5 bg-white/[0.07] rounded-full overflow-hidden">
-                  <div className="h-full bg-purple-400/55 rounded-full transition-all duration-75"
-                    style={{width:`${hoverVid * 5}%`}}/>
+                  <div className="h-full bg-purple-400/55 rounded-full transition-all duration-75" style={{ width:`${hoverVid*5}%` }}/>
                 </div>
               </div>
               <div className="mt-2 pt-1.5 border-t border-white/[0.07] flex items-center justify-between">
@@ -774,38 +1294,192 @@ function HighlightPage({ onNav }: { onNav: (nav: UploadNav) => void }) {
           </div>
         </Card>
 
-        {/* ── 추천 하이라이트 클립 ── */}
-        <div className="flex-1 min-h-0 flex flex-col">
-          <div className="text-white/55 text-[11px] font-semibold mb-2 flex-shrink-0">
-            추천 하이라이트 클립 (4)
-            <span className="text-white/25 text-[10px] font-normal ml-2">클립에 마우스를 올리면 그래프에 위치가 표시됩니다</span>
+        {/* 하이라이트 타임라인 */}
+        <Card className="p-3 flex-shrink-0">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-white/55 text-[11px] font-semibold">하이라이트 타임라인</span>
+            <div className="flex items-center gap-3 text-[10px] text-white/35">
+              {([['bg-accent-purple','매우 높음'],['bg-purple-500/50','높음'],['bg-purple-500/25','보통']] as [string,string][]).map(([c,l]) => (
+                <span key={l} className="flex items-center gap-1">
+                  <span className={`w-2 h-2 rounded-sm ${c}`}/>{l}
+                </span>
+              ))}
+            </div>
+          </div>
+          <div className="flex gap-3 items-start">
+            <div className="flex-1 min-w-0">
+              <div className="flex">
+                <div className="flex-shrink-0" style={{ width:'22px' }}/>
+                <div className="relative h-6 flex-1 bg-white/[0.04] rounded overflow-hidden border border-white/[0.06]">
+                  {/* 분석된 구간 배경 */}
+                  <div className="absolute inset-y-0 left-0 bg-white/[0.04] transition-all duration-100"
+                    style={{ width:`${progress}%` }}/>
+
+                  {/* 클립 세그먼트 — 분석 진행하면서 페이드인 */}
+                  {TIMELINE_SEGS.map((s, i) => {
+                    if (s.l > progress + 1) return null
+                    const revealPct = Math.min(1, Math.max(0, (progress - s.l) / Math.max(s.w, 1)))
+                    return (
+                      <div key={i} className="absolute top-0.5 bottom-0.5 rounded-sm"
+                        style={{
+                          left:`${s.l}%`, width:`${s.w}%`,
+                          opacity: revealPct * (hClip ? 0.35 : 1),
+                          background: s.lv===3?'#7c3aed':s.lv===2?'rgba(124,58,237,.55)':'rgba(124,58,237,.28)',
+                          boxShadow: s.lv===3?'0 0 8px rgba(124,58,237,.7)':undefined,
+                          transition:'opacity 0.4s',
+                        }}
+                      />
+                    )
+                  })}
+
+                  {/* 클립 호버 하이라이트 */}
+                  {hClip && (() => {
+                    const { startPct, endPct } = parseClipPos(hClip.time)
+                    const w = Math.max(endPct - startPct, 0.8)
+                    return (
+                      <div className="absolute top-0 bottom-0 z-10 pointer-events-none"
+                        style={{ left:`${startPct}%`, width:`${w}%`, background:'#a855f7', borderRadius:'3px',
+                          boxShadow:'0 0 12px rgba(168,85,247,1), 0 0 24px rgba(124,58,237,0.6)' }}/>
+                    )
+                  })()}
+
+                  {/* 라이브 프론트 엣지 */}
+                  <div className="absolute top-0 bottom-0 w-[2px] z-20 transition-all duration-100"
+                    style={{ left:`${progress}%`, background:'#a855f7',
+                      boxShadow:'0 0 10px rgba(168,85,247,1), 0 0 20px rgba(124,58,237,0.6)' }}>
+                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full"
+                      style={{ background:'#c084fc', boxShadow:'0 0 8px rgba(192,132,252,1)',
+                        animation: animDone ? 'pulse 1.5s ease-in-out infinite' : undefined }}/>
+                  </div>
+                </div>
+              </div>
+              <div className="flex justify-between text-[10px] text-white/25 mt-1" style={{ paddingLeft:'22px' }}>
+                {['00:00:00','01:45:00','03:30:00','05:15:00'].map(t => <span key={t}>{t}</span>)}
+                <span className="text-accent-purple/60">07:03:15</span>
+              </div>
+            </div>
+            <div className="flex-shrink-0" style={{ width:'112px' }}/>
+          </div>
+        </Card>
+
+        {/* AI 분석 로그 피드 */}
+        <Card className="flex-shrink-0">
+          <div className="flex items-center justify-between px-3 pt-2.5 pb-2 border-b border-white/[0.06]">
+            <div className="flex items-center gap-1.5">
+              <span className="text-white/55 text-[11px] font-semibold">AI 분석 로그</span>
+              {!animDone && !selectedLogClip && (
+                <span className="flex items-center gap-1 text-[8px] text-green-400/70">
+                  <span className="w-1 h-1 rounded-full bg-green-400 animate-pulse flex-shrink-0"/>실시간
+                </span>
+              )}
+              {selectedLogClip && (
+                <span className="flex items-center gap-1 text-[8px] text-cyan-400/80 bg-cyan-500/10 border border-cyan-500/25 px-1.5 py-px rounded-full">
+                  <span className="w-1 h-1 rounded-full bg-cyan-400 flex-shrink-0"/>클립 #{selectedLogClip.rank} 필터
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              {selectedLogClip && (
+                <>
+                  <button
+                    onClick={() => setShowAnalysisModal(true)}
+                    className="flex items-center gap-1 text-[9px] text-accent-purple border border-accent-purple/40 bg-accent-purple/10 px-2 py-0.5 rounded-lg hover:bg-accent-purple/20 transition-colors font-semibold"
+                  >
+                    상세보기
+                  </button>
+                  <button
+                    onClick={() => setSelectedLogClip(null)}
+                    className="text-white/25 hover:text-white/55 transition-colors"
+                  >
+                    <X size={10}/>
+                  </button>
+                </>
+              )}
+              <span className="text-white/25 text-[9px]">{filteredLogs.length}개 이벤트</span>
+            </div>
+          </div>
+          <div ref={logScrollRef}
+            className="h-[90px] overflow-y-auto [&::-webkit-scrollbar]:w-[3px] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-accent-purple/25 [&::-webkit-scrollbar-track]:bg-transparent">
+            {filteredLogs.map((log, i) => {
+              const isHighlighted = selectedLogClip && log.clip === selectedLogClip.rank
+              return (
+                <motion.div key={i}
+                  initial={{ opacity:0, x:-8 }}
+                  animate={{ opacity:1, x:0 }}
+                  transition={{ duration:0.25 }}
+                  className={`flex items-start gap-2 px-3 py-1.5 border-b border-white/[0.03] transition-colors ${
+                    isHighlighted ? 'bg-accent-purple/[0.06]' : 'hover:bg-white/[0.02]'
+                  }`}>
+                  <span className="text-white/20 text-[9px] font-mono flex-shrink-0 mt-px w-[52px]">{log.time}</span>
+                  <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 mt-1.5 ${
+                    log.type==='chat' ? 'bg-cyan-400' :
+                    log.type==='detect' ? 'bg-accent-purple' :
+                    log.type==='extract' ? 'bg-green-400' : 'bg-white/25'
+                  }`}/>
+                  <span className={`text-[10px] leading-relaxed ${
+                    log.type==='chat' ? 'text-cyan-400/75' :
+                    log.type==='detect' ? (isHighlighted ? 'text-accent-purple' : 'text-accent-purple/80') :
+                    log.type==='extract' ? (isHighlighted ? 'text-green-400' : 'text-green-400/80') : 'text-white/35'
+                  }`}>{log.msg}</span>
+                </motion.div>
+              )
+            })}
+            {!animDone && (
+              <div className="flex items-center gap-2 px-3 py-1.5">
+                <span className="text-white/15 text-[9px] font-mono w-[52px]">──:──:──</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-white/15 flex-shrink-0"/>
+                <span className="text-white/20 text-[10px]">분석 진행 중</span>
+                <span className="flex gap-0.5 ml-1">
+                  {[0,1,2].map(i => (
+                    <span key={i} className="w-1 h-1 rounded-full bg-white/20 animate-bounce"
+                      style={{ animationDelay:`${i*0.15}s` }}/>
+                  ))}
+                </span>
+              </div>
+            )}
+          </div>
+        </Card>
+
+        {/* 실시간 감지된 클립 */}
+        <div className="flex-shrink-0">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-white/55 text-[11px] font-semibold">실시간 감지된 클립</span>
+            <span className="text-accent-purple text-[10px] font-bold bg-accent-purple/15 px-1.5 py-px rounded-full">
+              {detectedClips.length}개
+            </span>
+            {!animDone && (
+              <span className="flex items-center gap-1 text-[9px] text-orange-400/80 bg-orange-500/10 border border-orange-500/20 px-2 py-px rounded-full">
+                <span className="w-1 h-1 rounded-full bg-orange-400 animate-ping flex-shrink-0"/>분석 진행 중
+              </span>
+            )}
+            <span className="text-white/25 text-[10px] font-normal ml-auto">클릭하면 상세 정보를 볼 수 있습니다</span>
           </div>
           <div className="grid grid-cols-4 gap-2" onClick={() => setOpenMenu(null)}>
-            {CLIPS.map(clip => (
-              <div key={clip.rank}
+            {detectedClips.map(clip => (
+              <motion.div
+                key={clip.rank}
+                initial={{ opacity:0, y:14, scale:0.9 }}
+                animate={{ opacity:1, y:0, scale:1 }}
+                transition={{ duration:0.38, ease:[0.22,1,0.36,1] }}
                 onMouseEnter={() => setHoveredClip(clip.rank)}
                 onMouseLeave={() => setHoveredClip(null)}
-                onClick={() => { setOpenMenu(null); setSelectedClip(clip) }}
+                onClick={() => { setOpenMenu(null); setSelectedLogClip(prev => prev?.rank === clip.rank ? null : clip) }}
                 className={`bg-white/[0.04] rounded-xl border transition-all cursor-pointer flex flex-col ${
-                  hoveredClip === clip.rank
-                    ? 'border-accent-purple/60 shadow-lg shadow-accent-purple/15 -translate-y-px'
-                    : 'border-white/[0.07] hover:border-white/15'
+                  selectedLogClip?.rank === clip.rank
+                    ? 'border-cyan-500/65 shadow-lg shadow-cyan-500/15 -translate-y-px'
+                    : hoveredClip === clip.rank
+                      ? 'border-accent-purple/60 shadow-lg shadow-accent-purple/15 -translate-y-px'
+                      : 'border-white/[0.07] hover:border-white/15'
                 }`}
               >
-                {/* Thumbnail */}
+                {/* 썸네일 */}
                 <div className="rounded-t-xl overflow-hidden relative flex-shrink-0"
-                  style={{aspectRatio:'16/6', background:'#0a0a14'}}>
-                  <img
-                    src={THUMB_IMGS[(clip.rank - 1) % THUMB_IMGS.length]}
-                    alt={clip.title}
-                    className="absolute inset-0 w-full h-full object-cover"
-                    draggable={false}
-                  />
+                  style={{ aspectRatio:'16/6', background:'#0a0a14' }}>
+                  <img src={THUMB_IMGS[(clip.rank-1)%THUMB_IMGS.length]} alt={clip.title}
+                    className="absolute inset-0 w-full h-full object-cover" draggable={false}/>
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className={`w-6 h-6 rounded-full flex items-center justify-center border transition-all ${
-                      hoveredClip === clip.rank
-                        ? 'bg-accent-purple/70 border-accent-purple'
-                        : 'bg-white/20 border-white/25'
+                      hoveredClip===clip.rank ? 'bg-accent-purple/70 border-accent-purple' : 'bg-white/20 border-white/25'
                     }`}>
                       <Play size={9} className="text-white ml-0.5" fill="white"/>
                     </div>
@@ -815,30 +1489,33 @@ function HighlightPage({ onNav }: { onNav: (nav: UploadNav) => void }) {
                     <span className="text-white/80 text-[9px] font-bold">{clip.rank}</span>
                   </div>
                   <div className="absolute bottom-1 left-1 bg-black/60 text-white/65 text-[8px] px-1 py-px rounded">{clip.dur}</div>
+                  {/* 방금 감지됨 뱃지 */}
+                  {Math.abs(clip.pos - progress) < 7 && !animDone && (
+                    <div className="absolute top-1 right-1 bg-red-500/85 text-white text-[7px] font-bold px-1.5 py-px rounded-full animate-pulse">
+                      방금 감지
+                    </div>
+                  )}
                 </div>
 
-                {/* Info */}
+                {/* 클립 정보 */}
                 <div className="px-2 pt-1.5 pb-2 flex flex-col gap-1">
-                  {/* 제목 + ··· */}
                   <div className="flex items-center gap-1">
                     <div className="text-white/80 text-[10px] font-semibold truncate flex-1">{clip.title}</div>
                     <div className="relative flex-shrink-0" onClick={e => e.stopPropagation()}>
-                      <button
-                        onClick={() => setOpenMenu(openMenu === clip.rank ? null : clip.rank)}
-                        className="text-white/25 hover:text-white/60 p-0.5 rounded transition-colors"
-                      >
+                      <button onClick={() => setOpenMenu(openMenu===clip.rank ? null : clip.rank)}
+                        className="text-white/25 hover:text-white/60 p-0.5 rounded transition-colors">
                         <MoreHorizontal size={10}/>
                       </button>
                       {openMenu === clip.rank && (
                         <div className="absolute right-0 top-full mt-0.5 z-30 bg-[#1a1a2e] border border-white/[0.12] rounded-lg shadow-2xl min-w-[108px] py-1">
                           {[
-                            { icon:RotateCcw, label:'이 클립 재분석', color:'text-white/60',    nav: null },
-                            { icon:Upload,    label:'업로드',         color:'text-white/60',    nav: 'upload' as const },
-                            { icon:Download,  label:'내보내기',       color:'text-white/60',    nav: 'export' as const },
-                            { icon:Trash2,    label:'삭제',           color:'text-red-400/70',  nav: null },
+                            { icon:RotateCcw, label:'이 클립 재분석', color:'text-white/60',   nav:null },
+                            { icon:Upload,    label:'업로드',         color:'text-white/60',   nav:'upload' as const },
+                            { icon:Download,  label:'내보내기',       color:'text-white/60',   nav:'export' as const },
+                            { icon:Trash2,    label:'삭제',           color:'text-red-400/70', nav:null },
                           ].map(({ icon:Icon, label, color, nav }) => (
                             <button key={label}
-                              onClick={() => { if (nav) { setOpenMenu(null); onNav({ rank: clip.rank, tab: nav }) } }}
+                              onClick={() => { if (nav) { setOpenMenu(null); onNav({ rank:clip.rank, tab:nav }) } }}
                               className={`flex items-center gap-2 w-full px-3 py-1.5 text-[10px] ${color} hover:bg-white/[0.05] transition-colors`}>
                               <Icon size={9}/>{label}
                             </button>
@@ -847,30 +1524,22 @@ function HighlightPage({ onNav }: { onNav: (nav: UploadNav) => void }) {
                       )}
                     </div>
                   </div>
-
-                  {/* 태그 */}
                   <div className="flex flex-wrap gap-1">
                     {clip.tags.map(tag => (
                       <span key={tag} className="text-[8px] text-accent-purple/70 bg-accent-purple/10 px-1.5 py-px rounded-full">{tag}</span>
                     ))}
                   </div>
-
-                  {/* 시간 범위 */}
                   <div className="flex items-center gap-1 text-[8px]">
                     <span className="text-white/40">{clip.time.split('–')[0]}</span>
                     <span className="text-white/20">~</span>
                     <span className="text-white/40">{clip.time.split('–')[1]}</span>
                   </div>
-
-                  {/* 종합 점수 */}
                   <div className="flex items-center justify-between">
                     <span className="text-white/25 text-[8px]">종합 점수</span>
                     <span className={`font-bold text-[10px] transition-colors ${
-                      hoveredClip === clip.rank ? 'text-accent-purple' : 'text-accent-purple/75'
+                      hoveredClip===clip.rank ? 'text-accent-purple' : 'text-accent-purple/75'
                     }`}>{clip.score}점</span>
                   </div>
-
-                  {/* 타임라인 바 */}
                   <div>
                     {(() => {
                       const { startPct, endPct } = parseClipPos(clip.time)
@@ -883,172 +1552,58 @@ function HighlightPage({ onNav }: { onNav: (nav: UploadNav) => void }) {
                             <span>7:03</span>
                           </div>
                           <div className="relative h-1 bg-white/[0.08] rounded-full">
-                            <div className="absolute inset-y-0 left-0 rounded-full bg-white/[0.05]"
-                              style={{width:`${startPct}%`}}/>
+                            <div className="absolute inset-y-0 left-0 rounded-full bg-white/[0.05]" style={{ width:`${startPct}%` }}/>
                             <div className="absolute inset-y-0 rounded-full bg-accent-purple/75"
-                              style={{left:`${startPct}%`,width:`${segW}%`,boxShadow:'0 0 5px rgba(124,58,237,.9)'}}/>
+                              style={{ left:`${startPct}%`, width:`${segW}%`, boxShadow:'0 0 5px rgba(124,58,237,.9)' }}/>
                             <div className="absolute top-1/2 w-1.5 h-1.5 rounded-full bg-accent-purple"
-                              style={{left:`${startPct}%`,transform:'translate(-50%,-50%)',
-                                boxShadow:hoveredClip===clip.rank?'0 0 8px rgba(168,85,247,1)':'0 0 4px rgba(124,58,237,1)'}}/>
+                              style={{ left:`${startPct}%`, transform:'translate(-50%,-50%)',
+                                boxShadow:hoveredClip===clip.rank?'0 0 8px rgba(168,85,247,1)':'0 0 4px rgba(124,58,237,1)' }}/>
                             <div className="absolute top-1/2 w-1.5 h-1.5 rounded-full bg-cyan-400"
-                              style={{left:`${startPct+segW}%`,transform:'translate(-50%,-50%)',
-                                boxShadow:hoveredClip===clip.rank?'0 0 8px rgba(6,182,212,1)':'0 0 4px rgba(6,182,212,.8)'}}/>
+                              style={{ left:`${startPct+segW}%`, transform:'translate(-50%,-50%)',
+                                boxShadow:hoveredClip===clip.rank?'0 0 8px rgba(6,182,212,1)':'0 0 4px rgba(6,182,212,.8)' }}/>
                           </div>
                         </>
                       )
                     })()}
                   </div>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* 상세 모달 */}
       <AnimatePresence>
-        {selectedClip && (
-          <ClipDetailModal clip={selectedClip} onClose={() => setSelectedClip(null)} onNav={onNav}/>
+        {selectedLogClip && showAnalysisModal && (
+          <ClipAnalysisModal
+            clip={selectedLogClip}
+            onClose={() => setShowAnalysisModal(false)}
+            onReanalyze={onReanalyze}
+          />
         )}
       </AnimatePresence>
     </PageWrap>
   )
 }
 
-// ══════════════════════════════════════════════════════════
-// PAGE 3: 실시간 분석
-// ══════════════════════════════════════════════════════════
-function AnalysisPage({ onNav }: { onNav: (nav: UploadNav) => void }) {
-  const [elapsed, setElapsed] = useState(8073)
-  useEffect(() => {
-    const id = setInterval(() => setElapsed(e => e + 1), 1000)
-    return () => clearInterval(id)
-  }, [])
-
-  const events = [
-    { time:'02:14:08', type:'하이라이트', msg:'채팅 반응도 91% 감지 — 클립 생성됨', color:'text-purple-400' },
-    { time:'02:11:33', type:'채팅 급증',  msg:'1분간 채팅 수 1,247건 돌파',          color:'text-cyan-400'   },
-    { time:'01:48:03', type:'하이라이트', msg:'채팅 반응도 85% 감지 — 클립 생성됨', color:'text-purple-400' },
-    { time:'01:41:15', type:'시청자 피크',msg:'동시 시청자 13,204명 달성',           color:'text-green-400'  },
-    { time:'01:22:44', type:'채팅 급증',  msg:'1분간 채팅 수 987건 돌파',            color:'text-cyan-400'   },
-  ]
-  const liveStats = [
-    { label:'현재 시청자',    value:'13,204', icon:Users,        color:'text-cyan-400'   },
-    { label:'분당 채팅',      value:'1,247',  icon:MessageSquare,color:'text-purple-400' },
-    { label:'하이라이트 점수',value:'87점',   icon:Star,         color:'text-yellow-400' },
-    { label:'감지된 구간',    value:'12개',   icon:Zap,          color:'text-green-400'  },
-  ]
-  const liveClips = [CLIPS[0], CLIPS[1]]
-
-  return (
-    <PageWrap>
-      <div className="px-5 pt-4 pb-2 flex-shrink-0 flex items-center justify-between">
-        <div>
-          <h3 className="text-white font-bold text-sm">실시간 분석</h3>
-          <p className="text-white/35 text-[11px]">방송 중 실시간 감지 현황</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 text-[11px] text-white/50 bg-white/[0.04] border border-white/[0.08] px-3 py-1.5 rounded-lg font-mono">
-            경과 <span className="text-white/75 font-bold">{fmtSecs(elapsed)}</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-[11px] text-green-400 bg-green-500/10 border border-green-500/20 px-3 py-1.5 rounded-lg">
-            <Wifi size={11}/> 실시간 연결 중
-          </div>
-        </div>
-      </div>
-      <div className="flex-1 px-5 pb-4 flex flex-col gap-3 min-h-0">
-        <div className="grid grid-cols-4 gap-3 flex-shrink-0">
-          {liveStats.map(s => {
-            const Icon = s.icon
-            return (
-              <Card key={s.label} className="p-3">
-                <div className="flex items-center gap-1.5 mb-1"><Icon size={12} className={s.color}/><span className="text-white/35 text-[10px]">{s.label}</span></div>
-                <div className={`text-lg font-bold ${s.color}`}>{s.value}</div>
-              </Card>
-            )
-          })}
-        </div>
-        <Card className="p-3 flex-shrink-0">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse flex-shrink-0"/>
-            <span className="text-white/55 text-[11px] font-semibold">방송 중 감지된 클립</span>
-            <span className="text-red-400 text-[9px] bg-red-500/10 px-1.5 py-px rounded-full ml-auto">LIVE 중</span>
-          </div>
-          <div className="flex gap-2">
-            {liveClips.map(clip => (
-              <div key={clip.rank} className="flex-1 flex items-center gap-2.5 bg-white/[0.03] rounded-lg px-2.5 py-2 border border-white/[0.06]">
-                <div className="relative flex-shrink-0 rounded overflow-hidden" style={{width:'48px',aspectRatio:'16/9'}}>
-                  <img src={THUMB_IMGS[(clip.rank-1)%THUMB_IMGS.length]} alt={clip.title}
-                    className="absolute inset-0 w-full h-full object-cover" draggable={false}/>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5 mb-0.5">
-                    <span className="text-white/70 text-[10px] font-semibold truncate">{clip.title}</span>
-                    <span className="text-red-400 text-[8px] bg-red-500/15 px-1.5 py-px rounded-full flex-shrink-0 font-semibold">LIVE 중 클립</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-accent-purple text-[9px] font-bold">{clip.score}점</span>
-                    <span className="text-white/25 text-[9px]">·</span>
-                    <span className="text-white/35 text-[9px]">{clip.dur}</span>
-                  </div>
-                </div>
-                <div className="flex gap-1 flex-shrink-0">
-                  <button onClick={() => onNav({ rank: clip.rank, tab: 'upload' })} className="flex items-center gap-1 text-[9px] text-white/60 bg-white/[0.06] hover:bg-accent-purple/20 hover:text-accent-purple border border-white/[0.08] rounded-md px-2 py-1 transition-colors">
-                    <Upload size={8}/> 업로드
-                  </button>
-                  <button onClick={() => onNav({ rank: clip.rank, tab: 'export' })} className="flex items-center gap-1 text-[9px] text-white/60 bg-white/[0.06] hover:bg-cyan-500/15 hover:text-cyan-400 border border-white/[0.08] rounded-md px-2 py-1 transition-colors">
-                    <Download size={8}/> 내보내기
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-        <div className="flex gap-3 flex-1 min-h-0">
-          <Card className="flex-1 flex flex-col min-h-0">
-            <div className="px-4 py-2.5 border-b border-white/[0.06] flex-shrink-0">
-              <span className="text-white/55 text-xs font-semibold">이벤트 감지 로그</span>
-            </div>
-            <div className="flex-1 overflow-hidden">
-              {events.map((e,i) => (
-                <div key={i} className="flex items-start gap-3 px-4 py-2.5 border-b border-white/[0.04] hover:bg-white/[0.02]">
-                  <span className="text-white/30 text-[10px] flex-shrink-0 mt-0.5">{e.time}</span>
-                  <span className={`text-[10px] font-semibold flex-shrink-0 mt-0.5 ${e.color}`}>{e.type}</span>
-                  <span className="text-white/55 text-[10px]">{e.msg}</span>
-                </div>
-              ))}
-            </div>
-          </Card>
-          <Card className="w-44 flex-shrink-0 p-3 flex flex-col gap-3">
-            <span className="text-white/55 text-[11px] font-semibold">키워드 분석</span>
-            {[['클립각',94],['역전',88],['ㅋㅋㅋ',85],['대박',78],['와',72],['미쳤다',65]].map(([kw,pct]) => (
-              <div key={kw}>
-                <div className="flex justify-between text-[10px] mb-0.5">
-                  <span className="text-white/60">{kw}</span>
-                  <span className="text-accent-purple/70">{pct}%</span>
-                </div>
-                <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
-                  <div className="h-full bg-accent-purple/60 rounded-full" style={{width:`${pct}%`}}/>
-                </div>
-              </div>
-            ))}
-          </Card>
-        </div>
-      </div>
-    </PageWrap>
-  )
-}
 
 // ══════════════════════════════════════════════════════════
 // PAGE 3: 방송 & 클립 (방송 이력 + 클립 관리 통합)
 // ══════════════════════════════════════════════════════════
-function ClipsPage({ onNav }: { onNav: (nav: UploadNav) => void }) {
+function ClipsPage({ onNav, initialOpenClip }: { onNav: (nav: UploadNav) => void; initialOpenClip?: Clip | null }) {
   const [viewTab,       setViewTab]       = useState<'broadcast'|'clips'>('clips')
   const [openFilter,    setOpenFilter]    = useState<string | null>(null)
   const [openMenu,      setOpenMenu]      = useState<number | null>(null)
   const [activeFilters, setActiveFilters] = useState<Record<string,string>>({})
   const [selectedClip,  setSelectedClip]  = useState<Clip | null>(null)
   const [sortBy,        setSortBy]        = useState<'score'|'date'>('score')
+
+  // 재분석 진입 시 해당 클립 모달 자동 오픈
+  useEffect(() => {
+    if (!initialOpenClip) return
+    setViewTab('clips')
+    setSelectedClip(initialOpenClip)
+  }, [initialOpenClip])
   const [sortOrder,     setSortOrder]     = useState<'desc'|'asc'>('desc')
   const [dateFrom,      setDateFrom]      = useState<string>('전체')
   const [dateTo,        setDateTo]        = useState<string>('전체')
@@ -2721,18 +3276,25 @@ function SettingsPage() {
 // ══════════════════════════════════════════════════════════
 export default function LiveDashboard() {
   const { ref, inView } = useInView()
-  const [activePage,  setActivePage]  = useState<Page>('highlight')
-  const [uploadNav,   setUploadNav]   = useState<UploadNav | null>(null)
+  const [activePage,       setActivePage]       = useState<Page>('highlight')
+  const [uploadNav,        setUploadNav]        = useState<UploadNav | null>(null)
+  const [clipsInitialClip, setClipsInitialClip] = useState<Clip | null>(null)
 
   const navigateToUpload = (nav: UploadNav) => {
     setUploadNav(nav)
     setActivePage('upload')
   }
 
+  const navigateToClipsWithClip = (clip: Clip) => {
+    setClipsInitialClip(clip)
+    setActivePage('clips')
+    // 모달 자동 오픈 후 초기화 — 이후 재방문 시 재오픈 방지
+    setTimeout(() => setClipsInitialClip(null), 400)
+  }
+
   const pageComponents: Record<Page, React.ReactNode> = {
-    highlight:   <HighlightPage onNav={navigateToUpload} />,
-    analysis:    <AnalysisPage onNav={navigateToUpload} />,
-    clips:       <ClipsPage onNav={navigateToUpload} />,
+    highlight:   <LiveAnalysisPage onNav={navigateToUpload} onReanalyze={navigateToClipsWithClip} />,
+    clips:       <ClipsPage onNav={navigateToUpload} initialOpenClip={clipsInitialClip} />,
     upload:      <UploadPage initialNav={uploadNav} />,
     performance: <PerformancePage />,
     settings:    <SettingsPage />,
