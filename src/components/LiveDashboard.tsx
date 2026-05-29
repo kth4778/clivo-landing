@@ -120,7 +120,6 @@ const RADIO_CLIPS: Clip[] = [
   { rank:18, title:'이 얘기 처음 하는 건데',        time:'02:18:05–02:20:15', dur:'02:10', score:86, chatScore:73, videoScore:13, tags:['#비하인드','#첫공개'], pos:84, date:'05.25', platform:'치지직', genre:'보이는라디오' },
 ]
 
-const CLIPS = ALL_CLIPS.slice(0, 4)
 
 // ── 실시간 분석 로그 이벤트 ─────────────────────────────────
 type LogEntry = { pos: number; time: string; type: 'info' | 'chat' | 'detect' | 'extract'; clip?: number; msg: string }
@@ -258,9 +257,9 @@ function PageWrap({ children }: { children: React.ReactNode }) {
 }
 
 // ── Card shell ────────────────────────────────────────────
-function Card({ className='', children }: { className?: string; children: React.ReactNode }) {
+function Card({ className='', style, children }: { className?: string; style?: React.CSSProperties; children: React.ReactNode }) {
   return (
-    <div className={`bg-white/[0.04] rounded-xl border border-white/[0.07] ${className}`}>
+    <div className={`bg-white/[0.04] rounded-xl border border-white/[0.07] ${className}`} style={style}>
       {children}
     </div>
   )
@@ -695,143 +694,6 @@ function CommonSidebar({ onNavigate }: { onNavigate: (p: Page) => void }) {
 
 
 // ══════════════════════════════════════════════════════════
-// CLIP LOG MODAL — 클립 추출 분석 로그
-// ══════════════════════════════════════════════════════════
-function ClipLogModal({ clip, onClose, onNav }: { clip: Clip; onClose: () => void; onNav: (nav: UploadNav) => void }) {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [onClose])
-
-  const detectEntry  = LOG_EVENTS.find(e => e.clip === clip.rank && e.type === 'detect')
-  const extractEntry = LOG_EVENTS.find(e => e.clip === clip.rank && e.type === 'extract')
-  // 추출 과정 4단계
-  const steps = [
-    { time: detectEntry?.time  ?? '--:--:--', label:'채팅 급증 감지',    color:'text-cyan-400',   dot:'bg-cyan-400'   },
-    { time: detectEntry?.time  ?? '--:--:--', label:'클립 후보 선정',    color:'text-purple-400', dot:'bg-accent-purple' },
-    { time: extractEntry?.time ?? '--:--:--', label:'경계 분석 완료',    color:'text-yellow-400', dot:'bg-yellow-400' },
-    { time: extractEntry?.time ?? '--:--:--', label:'추출 · 태그 완료',  color:'text-green-400',  dot:'bg-green-400'  },
-  ]
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/65 backdrop-blur-sm"
-      onClick={onClose}>
-      <motion.div
-        initial={{ opacity:0, scale:0.94, y:18 }}
-        animate={{ opacity:1, scale:1, y:0 }}
-        exit={{ opacity:0, scale:0.94, y:10 }}
-        transition={{ duration:0.2, ease:[0.22,1,0.36,1] }}
-        className="relative w-full max-w-[440px] rounded-2xl border border-white/10 shadow-2xl"
-        style={{ background:'#0f0f1e' }}
-        onClick={e => e.stopPropagation()}
-      >
-        {/* 닫기 */}
-        <button onClick={onClose}
-          className="absolute top-3 right-3 z-10 w-7 h-7 rounded-full bg-white/[0.06] hover:bg-white/[0.12] flex items-center justify-center transition-colors">
-          <X size={13} className="text-white/50"/>
-        </button>
-
-        <div className="p-4 space-y-3">
-          {/* 클립 헤더 */}
-          <div className="flex items-center gap-3">
-            <div className="relative w-[72px] flex-shrink-0 rounded-lg overflow-hidden" style={{ aspectRatio:'16/9' }}>
-              <img src={THUMB_IMGS[(clip.rank-1)%THUMB_IMGS.length]} alt={clip.title}
-                className="absolute inset-0 w-full h-full object-cover" draggable={false}/>
-              <div className="absolute bottom-1 right-1 bg-accent-purple text-white text-[8px] font-bold px-1.5 py-px rounded-full">
-                {clip.score}점
-              </div>
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-white/85 text-sm font-semibold leading-tight">{clip.title}</div>
-              <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                <span className="text-white/35 text-[9px]">{clip.dur}</span>
-                <span className="text-white/20 text-[9px]">·</span>
-                <span className="text-white/35 text-[9px]">{clip.platform}</span>
-                <span className="text-white/20 text-[9px]">·</span>
-                <span className="text-white/35 text-[9px] font-mono">{clip.time}</span>
-              </div>
-              <div className="flex flex-wrap gap-1 mt-1">
-                {clip.tags.map(t => (
-                  <span key={t} className="text-[8px] text-accent-purple/70 bg-accent-purple/10 px-1.5 py-px rounded-full">{t}</span>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* 추출 타임라인 */}
-          <div className="rounded-xl border border-white/[0.07] overflow-hidden" style={{ background:'rgba(255,255,255,0.02)' }}>
-            <div className="px-3 py-2 border-b border-white/[0.06]">
-              <span className="text-white/45 text-[10px] font-semibold">클립 추출 과정</span>
-            </div>
-            <div className="p-3 relative">
-              <div className="absolute left-[18px] top-4 bottom-4 w-px bg-white/[0.07]"/>
-              <div className="space-y-3">
-                {steps.map((step, i) => (
-                  <motion.div key={i}
-                    initial={{ opacity:0, x:-6 }}
-                    animate={{ opacity:1, x:0 }}
-                    transition={{ delay: i * 0.08, duration:0.25 }}
-                    className="flex items-center gap-3">
-                    <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 z-10 ${step.dot}/80`}
-                      style={{ boxShadow:`0 0 6px ${step.dot.includes('cyan')?'rgba(6,182,212,0.5)':step.dot.includes('purple')?'rgba(124,58,237,0.5)':step.dot.includes('yellow')?'rgba(234,179,8,0.4)':'rgba(74,222,128,0.5)'}` }}/>
-                    <div className="flex-1 flex items-center justify-between">
-                      <span className={`text-[10px] font-semibold ${step.color}`}>{step.label}</span>
-                      <span className="text-white/30 text-[9px] font-mono">{step.time}</span>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* 점수 분석 */}
-          <div className="rounded-xl border border-white/[0.07] p-3" style={{ background:'rgba(255,255,255,0.02)' }}>
-            <div className="text-white/45 text-[10px] font-semibold mb-2">점수 분석</div>
-            <div className="space-y-2">
-              <div>
-                <div className="flex justify-between mb-1">
-                  <span className="text-white/40 text-[9px]">채팅 반응</span>
-                  <span className="text-cyan-400 text-[10px] font-bold">{clip.chatScore}<span className="text-white/25 text-[8px] font-normal">/80</span></span>
-                </div>
-                <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
-                  <div className="h-full bg-cyan-400/70 rounded-full" style={{ width:`${clip.chatScore}%` }}/>
-                </div>
-              </div>
-              <div>
-                <div className="flex justify-between mb-1">
-                  <span className="text-white/40 text-[9px]">영상 분석</span>
-                  <span className="text-purple-300 text-[10px] font-bold">{clip.videoScore}<span className="text-white/25 text-[8px] font-normal">/20</span></span>
-                </div>
-                <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
-                  <div className="h-full bg-purple-400/60 rounded-full" style={{ width:`${clip.videoScore * 5}%` }}/>
-                </div>
-              </div>
-              <div className="pt-1.5 border-t border-white/[0.06] flex justify-between items-center">
-                <span className="text-white/35 text-[9px]">종합 점수</span>
-                <span className="text-accent-purple text-base font-bold">{clip.score}<span className="text-white/25 text-[9px] font-normal ml-0.5">/100</span></span>
-              </div>
-            </div>
-          </div>
-
-          {/* 액션 버튼 */}
-          <div className="flex gap-2">
-            <button onClick={() => { onNav({ rank:clip.rank, tab:'upload' }); onClose() }}
-              className="flex-1 flex items-center justify-center gap-1.5 text-white/45 border border-white/[0.09] text-[10px] py-2 rounded-xl hover:border-accent-purple/40 hover:text-accent-purple transition-colors">
-              <Upload size={10}/> 업로드 페이지 →
-            </button>
-            <button onClick={() => { onNav({ rank:clip.rank, tab:'export' }); onClose() }}
-              className="flex-1 flex items-center justify-center gap-1.5 text-white/45 border border-white/[0.09] text-[10px] py-2 rounded-xl hover:border-cyan-500/35 hover:text-cyan-400 transition-colors">
-              <Download size={10}/> 내보내기 페이지 →
-            </button>
-          </div>
-        </div>
-      </motion.div>
-    </div>
-  )
-}
-
-// ══════════════════════════════════════════════════════════
 // CLIP ANALYSIS MODAL — 상세 AI 분석 (채팅 로그 + 감지 근거)
 // ══════════════════════════════════════════════════════════
 function ClipAnalysisModal({ clip, onClose, onReanalyze }: {
@@ -1097,10 +959,9 @@ function LiveAnalysisPage({ onNav, onReanalyze }: { onNav: (nav: UploadNav) => v
   const [graphPos,       setGraphPos]       = useState<number | null>(null)
   const [selectedLogClip,setSelectedLogClip]= useState<Clip | null>(null)
   const [showAnalysisModal,setShowAnalysisModal]= useState(false)
-  const [bitrate,    setBitrate]    = useState(6000)
-  const [delay,      setDelay]      = useState(0.8)
-  const [packetLoss, setPacketLoss] = useState(0.02)
-  const [chatRate,   setChatRate]   = useState(1247)
+  const [bitrate,  setBitrate]  = useState(6000)
+  const [delay,    setDelay]    = useState(0.8)
+  const [chatRate, setChatRate] = useState(1247)
   const logScrollRef = useRef<HTMLDivElement>(null)
 
   // 릴레이 & 채팅 수치 실시간 변동
@@ -1108,7 +969,6 @@ function LiveAnalysisPage({ onNav, onReanalyze }: { onNav: (nav: UploadNav) => v
     const id = setInterval(() => {
       setBitrate(b  => Math.max(5000, Math.min(6800, Math.round(b + (Math.random()-0.5)*280))))
       setDelay(d    => Math.round((Math.max(0.3, Math.min(2.0, d + (Math.random()-0.5)*0.22)))*10)/10)
-      setPacketLoss(p => Math.round((Math.max(0, Math.min(0.18, p + (Math.random()-0.5)*0.04)))*100)/100)
       setChatRate(r => Math.max(800, Math.min(1800, Math.round(r + (Math.random()-0.5)*180))))
     }, 1800)
     return () => clearInterval(id)
