@@ -1,16 +1,30 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useInView } from '@/hooks/useInView'
-import img27 from '@/assets/image 27.png'
-import img28 from '@/assets/image 28.png'
-import img29 from '@/assets/image 29.png'
-import img30 from '@/assets/image 30.png'
-import img31 from '@/assets/image 31.png'
-import img32 from '@/assets/image 32.png'
-import img33 from '@/assets/image 33.png'
-import img34 from '@/assets/image 34.png'
+import imgLol01 from '@/assets/clip_lol_01.png'
+import imgLol02 from '@/assets/clip_lol_02.png'
+import imgLol03 from '@/assets/clip_lol_03.png'
+import imgLol04 from '@/assets/clip_lol_04.png'
+import imgLol05 from '@/assets/clip_lol_05.png'
+import imgLol06 from '@/assets/clip_lol_06.png'
+import imgLol07 from '@/assets/clip_lol_07.png'
+import imgLol08 from '@/assets/clip_lol_08.png'
+import imgValo01 from '@/assets/clip_valo_01.png'
+import imgValo02 from '@/assets/clip_valo_02.png'
+import imgValo03 from '@/assets/clip_valo_03.png'
+import imgValo04 from '@/assets/clip_valo_04.png'
+import imgValo05 from '@/assets/clip_valo_05.png'
+import imgValo06 from '@/assets/clip_valo_06.png'
+import imgRadio01 from '@/assets/clip_radio_01.png'
+import imgRadio02 from '@/assets/clip_radio_02.png'
+import imgRadio03 from '@/assets/clip_radio_03.png'
+import imgRadio04 from '@/assets/clip_radio_04.png'
 
-const THUMB_IMGS = [img27, img28, img29, img30, img31, img32, img33, img34]
+const THUMB_IMGS = [
+  imgLol01, imgLol02, imgLol03, imgLol04, imgLol05, imgLol06, imgLol07, imgLol08,
+  imgValo01, imgValo02, imgValo03, imgValo04, imgValo05, imgValo06,
+  imgRadio01, imgRadio02, imgRadio03, imgRadio04,
+]
 
 import {
   Zap, BarChart2, Film, Upload,
@@ -80,14 +94,30 @@ const WAVE = [
 const TOTAL_SECS = 7 * 3600 + 3 * 60 + 15 // 07:03:15
 
 const ALL_CLIPS: Clip[] = [
-  { rank:1, title:'극적인 역전 순간!',   time:'03:18:45–03:21:59', dur:'03:21', score:98, chatScore:81, videoScore:17, tags:['#역전','#채팅폭발'],    pos:47, date:'05.27', platform:'치지직', genre:'발로란트'     },
-  { rank:2, title:'보조킬 완벽 타이밍', time:'01:47:22–01:50:10', dur:'02:48', score:91, chatScore:72, videoScore:19, tags:['#보스전','#완벽타이밍'], pos:25, date:'05.27', platform:'치지직', genre:'발로란트'     },
-  { rank:3, title:'연속 킬 폭발!',      time:'04:12:33–04:14:48', dur:'02:15', score:85, chatScore:68, videoScore:17, tags:['#연속킬','#스킬연계'],   pos:60, date:'05.27', platform:'치지직', genre:'발로란트'     },
-  { rank:4, title:'전설 아이템 획득!',  time:'05:45:11–05:47:09', dur:'01:58', score:79, chatScore:62, videoScore:17, tags:['#전설템','#축하'],       pos:82, date:'05.27', platform:'치지직', genre:'발로란트'     },
-  { rank:5, title:'화려한 콤보 연계',   time:'06:12:04–06:14:11', dur:'02:07', score:76, chatScore:59, videoScore:17, tags:['#콤보'],                 pos:88, date:'05.25', platform:'치지직', genre:'기타'         },
-  { rank:6, title:'아슬아슬한 생존',    time:'02:33:22–02:35:00', dur:'01:38', score:72, chatScore:57, videoScore:15, tags:['#생존'],                 pos:36, date:'05.25', platform:'치지직', genre:'기타'         },
-  { rank:7, title:'팀원 구조 성공',     time:'04:58:10–05:00:25', dur:'02:15', score:68, chatScore:52, videoScore:16, tags:['#팀플'],                 pos:70, date:'05.23', platform:'SOOP',   genre:'리그오브레전드' },
-  { rank:8, title:'예상치 못한 반전',   time:'01:10:55–01:13:02', dur:'02:07', score:65, chatScore:49, videoScore:16, tags:['#반전'],                 pos:17, date:'05.23', platform:'SOOP',   genre:'리그오브레전드' },
+  { rank:1, title:'이게 되네? 진짜로??',        time:'03:18:45–03:21:59', dur:'03:21', score:98, chatScore:81, videoScore:17, tags:['#한타역전','#채팅폭발'], pos:47, date:'05.29', platform:'SOOP', genre:'리그오브레전드' },
+  { rank:2, title:'솔킬 따고 손 떨림 ㅋㅋ',    time:'01:47:22–01:50:10', dur:'02:48', score:91, chatScore:72, videoScore:19, tags:['#솔킬','#손떨림'],       pos:25, date:'05.29', platform:'SOOP', genre:'리그오브레전드' },
+  { rank:3, title:'바론 스틸 하고 방송 터짐',   time:'04:12:33–04:14:48', dur:'02:15', score:85, chatScore:68, videoScore:17, tags:['#바론스틸','#대박'],     pos:60, date:'05.29', platform:'SOOP', genre:'리그오브레전드' },
+  { rank:4, title:'4대1 살아남은 거 실화냐',    time:'05:45:11–05:47:09', dur:'01:58', score:79, chatScore:62, videoScore:17, tags:['#4대1','#생존'],         pos:82, date:'05.29', platform:'SOOP', genre:'리그오브레전드' },
+  { rank:5, title:'팀원이 날 살렸다...',        time:'06:12:04–06:14:11', dur:'02:07', score:76, chatScore:59, videoScore:17, tags:['#팀플','#감동'],          pos:88, date:'05.29', platform:'SOOP', genre:'리그오브레전드' },
+  { rank:6, title:'이 각도에서 스킬이 맞음??',  time:'02:33:22–02:35:00', dur:'01:38', score:72, chatScore:57, videoScore:15, tags:['#스킬샷','#명중'],        pos:36, date:'05.29', platform:'SOOP', genre:'리그오브레전드' },
+  { rank:7, title:'한타 혼자 뒤집음 ㄷㄷ',     time:'04:58:10–05:00:25', dur:'02:15', score:68, chatScore:52, videoScore:16, tags:['#한타','#역전'],           pos:70, date:'05.29', platform:'SOOP', genre:'리그오브레전드' },
+  { rank:8, title:'멘탈 나갈 뻔했는데',         time:'01:10:55–01:13:02', dur:'02:07', score:65, chatScore:49, videoScore:16, tags:['#멘탈','#위기탈출'],      pos:17, date:'05.29', platform:'SOOP', genre:'리그오브레전드' },
+]
+
+const VALO_CLIPS: Clip[] = [
+  { rank:9,  title:'에임 뭐임 이거 ㅋㅋㅋ',       time:'01:23:10–01:24:45', dur:'01:35', score:94, chatScore:76, videoScore:18, tags:['#에임','#연속킬'],    pos:19, date:'05.27', platform:'치지직', genre:'발로란트' },
+  { rank:10, title:'1대5 클러치 실화냐',           time:'02:45:22–02:47:33', dur:'02:11', score:97, chatScore:82, videoScore:15, tags:['#클러치','#1대5'],    pos:39, date:'05.27', platform:'치지직', genre:'발로란트' },
+  { rank:11, title:'나이프로 그냥 해버림',          time:'03:12:05–03:13:20', dur:'01:15', score:88, chatScore:70, videoScore:18, tags:['#나이프','#웃김'],    pos:45, date:'05.27', platform:'치지직', genre:'발로란트' },
+  { rank:12, title:'에이스 뜬다 잠깐만',           time:'04:28:44–04:31:02', dur:'02:18', score:96, chatScore:79, videoScore:17, tags:['#에이스','#긴장'],    pos:63, date:'05.27', platform:'치지직', genre:'발로란트' },
+  { rank:13, title:'이 각에서 헤드샷이 맞음??',    time:'05:15:30–05:16:48', dur:'01:18', score:85, chatScore:67, videoScore:18, tags:['#헤드샷','#황당'],    pos:74, date:'05.27', platform:'치지직', genre:'발로란트' },
+  { rank:14, title:'버그냐 이게',                  time:'06:02:11–06:03:45', dur:'01:34', score:79, chatScore:61, videoScore:18, tags:['#버그','#황당'],      pos:86, date:'05.27', platform:'치지직', genre:'발로란트' },
+]
+
+const RADIO_CLIPS: Clip[] = [
+  { rank:15, title:'이거 공감되는 분?? ㅋㅋ',      time:'00:45:22–00:47:10', dur:'01:48', score:82, chatScore:71, videoScore:11, tags:['#공감','#일상'],    pos:27, date:'05.25', platform:'치지직', genre:'보이는라디오' },
+  { rank:16, title:'솔직히 말하면...',              time:'01:22:15–01:24:30', dur:'02:15', score:88, chatScore:76, videoScore:12, tags:['#솔직','#토크'],    pos:50, date:'05.25', platform:'치지직', genre:'보이는라디오' },
+  { rank:17, title:'갑자기 눈물 날 뻔했잖아',       time:'01:55:40–01:57:25', dur:'01:45', score:91, chatScore:80, videoScore:11, tags:['#감동','#눈물'],    pos:71, date:'05.25', platform:'치지직', genre:'보이는라디오' },
+  { rank:18, title:'이 얘기 처음 하는 건데',        time:'02:18:05–02:20:15', dur:'02:10', score:86, chatScore:73, videoScore:13, tags:['#비하인드','#첫공개'], pos:84, date:'05.25', platform:'치지직', genre:'보이는라디오' },
 ]
 
 const CLIPS = ALL_CLIPS.slice(0, 4)
@@ -99,76 +129,76 @@ const LOG_EVENTS: LogEntry[] = [
   { pos:  5, time:'00:21:07', type:'info',    msg:'AI 분석 세션 시작 — 채팅·영상 동시 모니터링 중' },
   { pos: 12, time:'00:50:33', type:'chat',    msg:'채팅 속도 상승 감지 (320건/분)' },
   { pos: 17, time:'01:10:55', type:'detect',  clip:8, msg:'클립 #8 후보 감지 — 채팅 반응 49점, 경계 분석 중...' },
-  { pos: 19, time:'01:19:40', type:'extract', clip:8, msg:'클립 #8 추출 완료 · 01:10:55–01:13:02 · #반전 자동 태깅' },
+  { pos: 19, time:'01:19:40', type:'extract', clip:8, msg:'클립 #8 추출 완료 · 01:10:55–01:13:02 · #멘탈 #위기탈출 자동 태깅' },
   { pos: 23, time:'01:38:22', type:'chat',    msg:'채팅 속도 상승 (612건/분)' },
   { pos: 25, time:'01:47:22', type:'detect',  clip:2, msg:'클립 #2 후보 감지 — 채팅 반응 72점, 경계 분석 중...' },
-  { pos: 27, time:'01:53:11', type:'extract', clip:2, msg:'클립 #2 추출 완료 · 01:47:22–01:50:10 · #보스전 #완벽타이밍 자동 태깅' },
+  { pos: 27, time:'01:53:11', type:'extract', clip:2, msg:'클립 #2 추출 완료 · 01:47:22–01:50:10 · #솔킬 #손떨림 자동 태깅' },
   { pos: 33, time:'02:18:05', type:'info',    msg:'영상 패턴 분석: 빠른 액션 시퀀스 집중 감지 모드 전환' },
   { pos: 36, time:'02:33:22', type:'detect',  clip:6, msg:'클립 #6 후보 감지 — 채팅 반응 57점, 경계 분석 중...' },
-  { pos: 38, time:'02:40:15', type:'extract', clip:6, msg:'클립 #6 추출 완료 · 02:33:22–02:35:00 · #생존 자동 태깅' },
+  { pos: 38, time:'02:40:15', type:'extract', clip:6, msg:'클립 #6 추출 완료 · 02:33:22–02:35:00 · #스킬샷 #명중 자동 태깅' },
   { pos: 44, time:'03:06:18', type:'chat',    msg:'채팅 폭발적 증가 — 1,247건/분 (세션 최고치)' },
   { pos: 47, time:'03:18:45', type:'detect',  clip:1, msg:'클립 #1 후보 감지 — 채팅 반응 81점, 최우선 처리 중...' },
-  { pos: 49, time:'03:24:03', type:'extract', clip:1, msg:'클립 #1 추출 완료 · 03:18:45–03:21:59 · #역전 #채팅폭발 자동 태깅' },
+  { pos: 49, time:'03:24:03', type:'extract', clip:1, msg:'클립 #1 추출 완료 · 03:18:45–03:21:59 · #한타역전 #채팅폭발 자동 태깅' },
   { pos: 58, time:'04:03:18', type:'chat',    msg:'채팅 반응 상승 (782건/분)' },
   { pos: 60, time:'04:12:33', type:'detect',  clip:3, msg:'클립 #3 후보 감지 — 채팅 반응 68점, 경계 분석 중...' },
-  { pos: 62, time:'04:18:44', type:'extract', clip:3, msg:'클립 #3 추출 완료 · 04:12:33–04:14:48 · #연속킬 #스킬연계 자동 태깅' },
+  { pos: 62, time:'04:18:44', type:'extract', clip:3, msg:'클립 #3 추출 완료 · 04:12:33–04:14:48 · #바론스틸 #대박 자동 태깅' },
   { pos: 68, time:'04:43:33', type:'info',    msg:'감정 분석: 긍정 반응 키워드 비율 87% — 품질 상위 구간 진입' },
   { pos: 70, time:'04:58:10', type:'detect',  clip:7, msg:'클립 #7 후보 감지 — 채팅 반응 52점, 경계 분석 중...' },
-  { pos: 72, time:'05:03:22', type:'extract', clip:7, msg:'클립 #7 추출 완료 · 04:58:10–05:00:25 · #팀플 자동 태깅' },
+  { pos: 72, time:'05:03:22', type:'extract', clip:7, msg:'클립 #7 추출 완료 · 04:58:10–05:00:25 · #한타 #역전 자동 태깅' },
 ]
 
 // ── 클립별 채팅 로그 (상위 메시지) ────────────────────────
 type ChatMsg = { user: string; msg: string; highlight?: boolean }
 const CLIP_CHAT_MSGS: Record<number, ChatMsg[]> = {
   1: [
-    { user:'채팅맨123',    msg:'오 역전이다!!! 진짜??',        highlight:true  },
-    { user:'GameLover99',  msg:'GGGGGG 이거 클립각',           highlight:true  },
-    { user:'뚝배기99',     msg:'와 개쩐다 ㄹㅇ',               highlight:true  },
-    { user:'user_1847',    msg:'하이라이트 확정 ㄷㄷ',         highlight:true  },
-    { user:'밤낮없이',     msg:'채팅 미쳤다 ㅋㅋㅋ',           highlight:false },
-    { user:'streamfan',    msg:'이 장면 꼭 잘라줘',            highlight:false },
-    { user:'겜잘알',       msg:'소름 돋았다 진짜',             highlight:false },
-    { user:'낮잠냥이',     msg:'ㅋㅋㅋㅋ 소름 ㄷㄷ',          highlight:false },
+    { user:'한타왕123',    msg:'이게 되네 ㄹㅇ 미쳤다',         highlight:true  },
+    { user:'롤마스터99',   msg:'채팅 폭발 ㅋㅋㅋ 역전이다',     highlight:true  },
+    { user:'뚝배기99',     msg:'와 저게 가능함?? 소름',          highlight:true  },
+    { user:'user_1847',    msg:'하이라이트 확정 ㄷㄷ',           highlight:true  },
+    { user:'밤낮없이',     msg:'채팅 미쳤다 ㅋㅋ',               highlight:false },
+    { user:'streamfan',    msg:'이 장면 꼭 잘라줘',              highlight:false },
+    { user:'겜잘알',       msg:'소름 돋았다 진짜',               highlight:false },
+    { user:'낮잠냥이',     msg:'ㅋㅋㅋㅋ 소름 ㄷㄷ',            highlight:false },
   ],
   2: [
-    { user:'pro_viewer',   msg:'타이밍 미쳤다 저게 되네',      highlight:true  },
-    { user:'게임왕',       msg:'완벽한 보조킬 ㄷㄷ',           highlight:true  },
-    { user:'chatking',     msg:'이게 바로 클립각이지',         highlight:true  },
-    { user:'user_5521',    msg:'ㅋㅋ 개잘함',                  highlight:false },
-    { user:'매일방송',     msg:'타이밍 보소 진짜',             highlight:false },
-    { user:'fan2025',      msg:'유튜브 올려줘!!',              highlight:false },
+    { user:'솔킬러99',     msg:'솔킬 ㄷㄷ 손 떨리겠다',          highlight:true  },
+    { user:'롤팬2025',     msg:'와 저게 됨?? 진짜',              highlight:true  },
+    { user:'chatking',     msg:'이게 바로 클립각이지',            highlight:true  },
+    { user:'user_5521',    msg:'ㅋㅋ 개잘함',                    highlight:false },
+    { user:'매일방송',     msg:'손 떨리는 거 보소 ㅋㅋ',          highlight:false },
+    { user:'fan2025',      msg:'유튜브 올려줘!!',                highlight:false },
   ],
   3: [
-    { user:'킬마스터',     msg:'연속킬 ㄷㄷㄷ 개쩐다',        highlight:true  },
-    { user:'gamer777',     msg:'스킬 연계 미쳤다',             highlight:true  },
-    { user:'viewer_22',    msg:'GG GG GG',                     highlight:false },
-    { user:'밤샘방송',     msg:'개잘해 이거 클립 뜨겠다',      highlight:false },
+    { user:'오브젝트장인', msg:'바론 스틸 ㄷㄷㄷ 개쩐다',        highlight:true  },
+    { user:'gamer777',     msg:'스틸 타이밍 미쳤다',              highlight:true  },
+    { user:'viewer_22',    msg:'방송 진짜 터진다 ㅋㅋ',           highlight:false },
+    { user:'밤샘방송',     msg:'이거 클립 뜨겠다',                highlight:false },
   ],
   4: [
-    { user:'아이템러버',   msg:'전설템이다!!! 와',             highlight:true  },
-    { user:'운빨겜',       msg:'와 전설 ㄷㄷ 축하해요',        highlight:true  },
-    { user:'loot_fan',     msg:'드디어 획득 ㅋㅋ',             highlight:false },
-    { user:'game_pro',     msg:'부럽다 진짜',                  highlight:false },
+    { user:'생존왕',       msg:'4대1 살았다!!! 와',               highlight:true  },
+    { user:'롤마니아',     msg:'실화냐 ㄷㄷ 진짜로',              highlight:true  },
+    { user:'loot_fan',     msg:'저게 가능해 ㅋㅋ',               highlight:false },
+    { user:'game_pro',     msg:'살아있는 거 맞나 ㅋㅋ',           highlight:false },
   ],
   5: [
-    { user:'콤보왕',       msg:'콤보 미쳤다ㅋㅋ',              highlight:true  },
-    { user:'viewer_x',     msg:'이게 되네 ㄹㅇ 신기',          highlight:false },
-    { user:'game_f',       msg:'화려하다',                     highlight:false },
+    { user:'팀플러',       msg:'팀원이 살렸다ㅋㅋ 감동',          highlight:true  },
+    { user:'teamwork99',   msg:'이게 진짜 팀게임이지',            highlight:false },
+    { user:'viewer_m',     msg:'훈훈하다 ㅋㅋ',                  highlight:false },
   ],
   6: [
-    { user:'생존왕',       msg:'살았다 ㄷㄷ 심장 쫄렸다',      highlight:true  },
-    { user:'아슬아슬',     msg:'아 심장아 진짜',               highlight:false },
-    { user:'user_332',     msg:'ㅋㅋ 아슬했다',                highlight:false },
+    { user:'스킬장인',     msg:'저 각도에서 맞음?? ㄷ',           highlight:true  },
+    { user:'롤조아',       msg:'아 심장아 진짜',                  highlight:false },
+    { user:'user_332',     msg:'ㅋㅋ 어떻게 맞힘',               highlight:false },
   ],
   7: [
-    { user:'팀플러',       msg:'팀원 구하다니 ㄷ 진짜 팀플',   highlight:true  },
-    { user:'teamwork99',   msg:'이게 진짜 팀게임이지',         highlight:false },
-    { user:'viewer_m',     msg:'훈훈하다 ㅋㅋ',               highlight:false },
+    { user:'한타마스터',   msg:'혼자 뒤집었다 ㄷ ㄹㅇ',           highlight:true  },
+    { user:'viewer_x',     msg:'이게 진짜 혼자 캐리',             highlight:false },
+    { user:'game_f',       msg:'미쳤다 ㅋㅋ',                    highlight:false },
   ],
   8: [
-    { user:'반전러',       msg:'이게 가능해?? 반전 ㄷ',        highlight:true  },
-    { user:'surprise_gm',  msg:'반전 미쳤다 소름',             highlight:false },
-    { user:'user_91',      msg:'예상 못했다 ㄹㅇ',             highlight:false },
+    { user:'멘탈러',       msg:'멘탈 안 나간 게 신기 ㄷ',         highlight:true  },
+    { user:'surprise_gm',  msg:'위기탈출 ㄷㄷ 소름',              highlight:false },
+    { user:'user_91',      msg:'저 상황에서 버팀 ㄹㅇ',           highlight:false },
   ],
 }
 
@@ -194,6 +224,22 @@ function buildPath(data: number[], w: number, h: number, fill: boolean) {
   }
   if (fill) d += ` L ${pts[pts.length-1][0]} ${h} L 0 ${h} Z`
   return d
+}
+
+// ── 클립 처리 단계 ────────────────────────────────────────
+type ClipStage = 'detecting' | 'segmenting' | 'encoding' | 'done'
+
+function getClipStage(clipPos: number, progress: number): ClipStage {
+  const diff = progress - clipPos
+  if (diff < 3)  return 'detecting'
+  if (diff < 7)  return 'segmenting'
+  if (diff < 14) return 'encoding'
+  return 'done'
+}
+
+function getEncodingPct(clipPos: number, progress: number): number {
+  const diff = progress - clipPos
+  return Math.min(94, Math.max(4, ((diff - 7) / 7) * 100))
 }
 
 // ── Page transition wrapper ───────────────────────────────
@@ -542,15 +588,23 @@ function ClipDetailModal({ clip, onClose, onNav }: { clip: Clip; onClose: () => 
 // COMMON SIDEBAR — 4 cards (모든 페이지 공통)
 // ══════════════════════════════════════════════════════════
 function CommonSidebar({ onNavigate }: { onNavigate: (p: Page) => void }) {
-  const [elapsed, setElapsed] = useState(8073)
+  const [elapsed,  setElapsed]  = useState(8073)
+  const [viewers,  setViewers]  = useState(11203)
 
   useEffect(() => {
     const id = setInterval(() => setElapsed(e => e + 1), 1000)
     return () => clearInterval(id)
   }, [])
 
+  useEffect(() => {
+    const id = setInterval(() => {
+      setViewers(v => Math.max(10000, Math.min(13000, Math.round(v + (Math.random()-0.5)*80))))
+    }, 3500)
+    return () => clearInterval(id)
+  }, [])
+
   return (
-    <aside className="w-48 flex-shrink-0 border-l border-white/[0.07] overflow-y-auto p-3 space-y-3"
+    <aside className="w-48 flex-shrink-0 border-l border-white/[0.07] overflow-hidden p-3 space-y-3"
       style={{ background:'#0c0c1a' }}>
       {/* Card 1: 라이브 상태 */}
       <div className="bg-white/[0.04] rounded-xl p-3 border border-green-500/25">
@@ -570,12 +624,12 @@ function CommonSidebar({ onNavigate }: { onNavigate: (p: Page) => void }) {
           </a>
         </div>
         <div className="text-white/75 text-[11px] font-semibold leading-snug mb-1">
-          발로란트 마스터 도전기 EP.12
+          리그 오브 레전드 | 플래 탈출 도전기 EP.8
         </div>
-        <div className="text-white/35 text-[10px] mb-1.5">치지직 · 경과 {fmtSecs(elapsed)}</div>
+        <div className="text-white/35 text-[10px] mb-1.5">SOOP · 경과 {fmtSecs(elapsed)}</div>
         <div className="flex items-center gap-1">
           <Users size={9} className="text-cyan-400 flex-shrink-0"/>
-          <span className="text-cyan-400 text-[10px] font-semibold">13,204</span>
+          <span className="text-cyan-400 text-[10px] font-semibold transition-all duration-700">{viewers.toLocaleString()}</span>
           <span className="text-white/30 text-[10px]">명 시청 중</span>
         </div>
       </div>
@@ -591,7 +645,7 @@ function CommonSidebar({ onNavigate }: { onNavigate: (p: Page) => void }) {
         ))}
       </Card>
 
-      {/* Card 3: 업로드 대기 */}
+      {/* Card 5: 업로드 대기 */}
       <Card className="p-3">
         <div className="text-white/50 text-[10px] font-semibold mb-2">업로드 대기</div>
         <div className="flex items-end gap-1.5 mb-2">
@@ -604,7 +658,7 @@ function CommonSidebar({ onNavigate }: { onNavigate: (p: Page) => void }) {
         </button>
       </Card>
 
-      {/* Card 4: 플랫폼 업로드 현황 */}
+      {/* Card 6: 플랫폼 업로드 현황 */}
       <Card className="p-3">
         <div className="flex items-center justify-between mb-2.5">
           <span className="text-white/50 text-[10px] font-semibold">플랫폼 업로드 현황</span>
@@ -1043,7 +1097,22 @@ function LiveAnalysisPage({ onNav, onReanalyze }: { onNav: (nav: UploadNav) => v
   const [graphPos,       setGraphPos]       = useState<number | null>(null)
   const [selectedLogClip,setSelectedLogClip]= useState<Clip | null>(null)
   const [showAnalysisModal,setShowAnalysisModal]= useState(false)
+  const [bitrate,    setBitrate]    = useState(6000)
+  const [delay,      setDelay]      = useState(0.8)
+  const [packetLoss, setPacketLoss] = useState(0.02)
+  const [chatRate,   setChatRate]   = useState(1247)
   const logScrollRef = useRef<HTMLDivElement>(null)
+
+  // 릴레이 & 채팅 수치 실시간 변동
+  useEffect(() => {
+    const id = setInterval(() => {
+      setBitrate(b  => Math.max(5000, Math.min(6800, Math.round(b + (Math.random()-0.5)*280))))
+      setDelay(d    => Math.round((Math.max(0.3, Math.min(2.0, d + (Math.random()-0.5)*0.22)))*10)/10)
+      setPacketLoss(p => Math.round((Math.max(0, Math.min(0.18, p + (Math.random()-0.5)*0.04)))*100)/100)
+      setChatRate(r => Math.max(800, Math.min(1800, Math.round(r + (Math.random()-0.5)*180))))
+    }, 1800)
+    return () => clearInterval(id)
+  }, [])
 
   // 20% → 80% 진행 애니메이션 (~22초)
   useEffect(() => {
@@ -1131,25 +1200,116 @@ function LiveAnalysisPage({ onNav, onReanalyze }: { onNav: (nav: UploadNav) => v
       {/* ── 스크롤 가능한 메인 콘텐츠 ── */}
       <div className="flex-1 px-5 pb-4 flex flex-col gap-2.5 min-h-0 overflow-y-auto [&::-webkit-scrollbar]:w-[3px] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-accent-purple/35 [&::-webkit-scrollbar-track]:bg-transparent">
 
-        {/* 스탯 카드 4개 */}
+        {/* 스탯 2개 + 릴레이 품질 + 채팅 API 상태 */}
         <div className="grid grid-cols-4 gap-2 flex-shrink-0">
-          {([
-            { label:'현재 시청자',     value:'13,204명', icon:Users,         color:'text-cyan-400'   },
-            { label:'분당 채팅',       value:'1,247건',  icon:MessageSquare, color:'text-purple-400' },
-            { label:'하이라이트 점수', value:'87점',     icon:Star,          color:'text-yellow-400' },
-            { label:'감지된 클립',     value:`${detectedClips.length}개`, icon:Zap, color:'text-green-400' },
-          ] as { label:string; value:string; icon:React.ElementType; color:string }[]).map(s => {
-            const Icon = s.icon
+
+          {/* 채팅 밀도 */}
+          {(() => {
+            const hot = chatRate >= 1300
+            const warm = chatRate >= 1100
+            const color = hot ? 'text-orange-400' : warm ? 'text-yellow-400' : 'text-cyan-400'
+            const barColor = hot ? 'bg-orange-400/70' : warm ? 'bg-yellow-400/60' : 'bg-cyan-400/60'
+            const barW = Math.min(100, Math.round((chatRate - 800) / 1000 * 100))
             return (
-              <Card key={s.label} className="p-2.5">
+              <Card className="p-2.5">
                 <div className="flex items-center gap-1.5 mb-1">
-                  <Icon size={11} className={s.color}/>
-                  <span className="text-white/35 text-[9px]">{s.label}</span>
+                  <MessageSquare size={11} className={color}/>
+                  <span className="text-white/35 text-[9px]">채팅 밀도</span>
                 </div>
-                <div className={`text-base font-bold ${s.color}`}>{s.value}</div>
+                <div className={`text-base font-bold font-mono ${color} transition-all duration-500`}>
+                  {chatRate.toLocaleString()}<span className="text-[9px] font-normal ml-0.5">건/분</span>
+                </div>
+                <div className="mt-1 h-0.5 bg-white/[0.06] rounded-full overflow-hidden">
+                  <div className={`h-full rounded-full transition-all duration-500 ${barColor}`} style={{ width:`${barW}%` }}/>
+                </div>
               </Card>
             )
-          })}
+          })()}
+
+          {/* 처리 대기열 */}
+          {(() => {
+            const queue = detectedClips.filter(c => getClipStage(c.pos, progress) !== 'done')
+            const stages = [
+              { label:'분석', count: queue.filter(c => getClipStage(c.pos,progress) === 'detecting').length,  dot:'bg-yellow-400' },
+              { label:'확정', count: queue.filter(c => getClipStage(c.pos,progress) === 'segmenting').length, dot:'bg-orange-400' },
+              { label:'인코딩', count: queue.filter(c => getClipStage(c.pos,progress) === 'encoding').length, dot:'bg-cyan-400'   },
+            ]
+            return (
+              <Card className="p-2.5">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <Zap size={11} className="text-accent-purple"/>
+                  <span className="text-white/35 text-[9px]">처리 대기열</span>
+                </div>
+                <div className="flex items-end gap-1 mb-1">
+                  <span className="text-base font-bold text-accent-purple">{queue.length}</span>
+                  <span className="text-white/30 text-[9px] pb-0.5">개 처리 중</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  {stages.map(s => s.count > 0 && (
+                    <span key={s.label} className="flex items-center gap-0.5 text-[8px] text-white/35">
+                      <span className={`w-1 h-1 rounded-full ${s.dot} animate-pulse`}/>
+                      {s.label} {s.count}
+                    </span>
+                  ))}
+                  {queue.length === 0 && <span className="text-[8px] text-white/20">대기 없음</span>}
+                </div>
+              </Card>
+            )
+          })()}
+
+          {/* 릴레이 품질 */}
+          <Card className="p-2.5">
+            <div className="flex items-center justify-between mb-1.5">
+              <div className="flex items-center gap-1">
+                <Wifi size={11} className="text-cyan-400"/>
+                <span className="text-white/35 text-[9px]">릴레이 품질</span>
+              </div>
+              <span className="flex items-center gap-0.5 text-[7px] text-green-400/80 bg-green-500/10 px-1 py-px rounded-full">
+                <span className="w-1 h-1 rounded-full bg-green-400 animate-pulse"/>RELAY
+              </span>
+            </div>
+            <div className="space-y-1">
+              <div className="flex justify-between">
+                <span className="text-white/30 text-[9px]">비트레이트</span>
+                <span className={`text-[9px] font-mono font-semibold ${bitrate > 5800 ? 'text-green-400' : 'text-yellow-400'}`}>{bitrate.toLocaleString()} kbps</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-white/30 text-[9px]">딜레이</span>
+                <span className={`text-[9px] font-mono font-semibold ${delay < 1.0 ? 'text-green-400' : 'text-yellow-400'}`}>{delay.toFixed(1)}s</span>
+              </div>
+            </div>
+            <div className="mt-1.5 h-0.5 bg-white/[0.06] rounded-full overflow-hidden">
+              <div className="h-full bg-cyan-400/60 rounded-full transition-all duration-700"
+                style={{ width:`${Math.min(100,(bitrate/6500)*100)}%` }}/>
+            </div>
+          </Card>
+
+          {/* 채팅 API 상태 */}
+          <Card className="p-2.5">
+            <div className="flex items-center gap-1 mb-1.5">
+              <MessageSquare size={11} className="text-accent-purple"/>
+              <span className="text-white/35 text-[9px]">채팅 API</span>
+            </div>
+            <div className="space-y-1">
+              {([
+                { platform:'치지직', connected:true  },
+                { platform:'SOOP',   connected:false },
+              ]).map(p => (
+                <div key={p.platform} className="flex items-center justify-between">
+                  <span className="text-white/40 text-[9px]">{p.platform}</span>
+                  {p.connected
+                    ? <span className="flex items-center gap-0.5 text-[8px] text-green-400"><span className="w-1 h-1 rounded-full bg-green-400 animate-pulse"/>연결</span>
+                    : <span className="text-[8px] text-white/20">미연결</span>
+                  }
+                </div>
+              ))}
+            </div>
+            <div className="mt-1 pt-1 border-t border-white/[0.05] flex justify-between">
+              <span className="text-white/25 text-[9px]">수신속도</span>
+              <span className="text-cyan-400 text-[9px] font-mono transition-all duration-700">{chatRate.toLocaleString()}건/분</span>
+            </div>
+          </Card>
+
         </div>
 
         {/* 채팅 반응 그래프 */}
@@ -1250,7 +1410,9 @@ function LiveAnalysisPage({ onNav, onReanalyze }: { onNav: (nav: UploadNav) => v
               </div>
               <div className="flex justify-between text-[10px] text-white/25 mt-1" style={{ paddingLeft:'22px' }}>
                 {['00:00:00','01:45:00','03:30:00','05:15:00'].map(t => <span key={t}>{t}</span>)}
-                <span className="text-accent-purple/60">07:03:15</span>
+                <span className="inline-flex items-center gap-0.5 text-accent-purple/70">
+                  <span className="w-1 h-1 rounded-full bg-accent-purple/80 animate-pulse flex-shrink-0"/>LIVE
+                </span>
               </div>
             </div>
 
@@ -1355,7 +1517,9 @@ function LiveAnalysisPage({ onNav, onReanalyze }: { onNav: (nav: UploadNav) => v
               </div>
               <div className="flex justify-between text-[10px] text-white/25 mt-1" style={{ paddingLeft:'22px' }}>
                 {['00:00:00','01:45:00','03:30:00','05:15:00'].map(t => <span key={t}>{t}</span>)}
-                <span className="text-accent-purple/60">07:03:15</span>
+                <span className="inline-flex items-center gap-0.5 text-accent-purple/70">
+                  <span className="w-1 h-1 rounded-full bg-accent-purple/80 animate-pulse flex-shrink-0"/>LIVE
+                </span>
               </div>
             </div>
             <div className="flex-shrink-0" style={{ width:'112px' }}/>
@@ -1381,15 +1545,18 @@ function LiveAnalysisPage({ onNav, onReanalyze }: { onNav: (nav: UploadNav) => v
             <div className="flex items-center gap-2">
               {selectedLogClip && (
                 <>
-                  <button
+                  <motion.button
+                    initial={{ opacity:0, scale:0.88 }}
+                    animate={{ opacity:1, scale:1 }}
                     onClick={() => setShowAnalysisModal(true)}
-                    className="flex items-center gap-1 text-[9px] text-accent-purple border border-accent-purple/40 bg-accent-purple/10 px-2 py-0.5 rounded-lg hover:bg-accent-purple/20 transition-colors font-semibold"
+                    className="flex items-center gap-1.5 text-[10px] font-bold text-white bg-accent-purple px-3 py-1 rounded-lg hover:bg-accent-purple/85 transition-all"
+                    style={{ boxShadow:'0 0 12px rgba(124,58,237,0.65), 0 0 4px rgba(124,58,237,0.4)' }}
                   >
-                    상세보기
-                  </button>
+                    <Search size={10}/> 상세 분석
+                  </motion.button>
                   <button
                     onClick={() => setSelectedLogClip(null)}
-                    className="text-white/25 hover:text-white/55 transition-colors"
+                    className="text-white/25 hover:text-white/55 transition-colors ml-0.5"
                   >
                     <X size={10}/>
                   </button>
@@ -1435,6 +1602,11 @@ function LiveAnalysisPage({ onNav, onReanalyze }: { onNav: (nav: UploadNav) => v
                       style={{ animationDelay:`${i*0.15}s` }}/>
                   ))}
                 </span>
+              </div>
+            )}
+            {!selectedLogClip && (
+              <div className="px-3 py-1.5 border-t border-white/[0.04]">
+                <span className="text-white/20 text-[9px]">아래 클립을 선택하면 관련 로그와 <span className="text-accent-purple/50 font-semibold">상세 분석</span>을 볼 수 있습니다</span>
               </div>
             )}
           </div>
@@ -1489,67 +1661,94 @@ function LiveAnalysisPage({ onNav, onReanalyze }: { onNav: (nav: UploadNav) => v
                     <span className="text-white/80 text-[9px] font-bold">{clip.rank}</span>
                   </div>
                   <div className="absolute bottom-1 left-1 bg-black/60 text-white/65 text-[8px] px-1 py-px rounded">{clip.dur}</div>
-                  {/* 방금 감지됨 뱃지 */}
-                  {Math.abs(clip.pos - progress) < 7 && !animDone && (
-                    <div className="absolute top-1 right-1 bg-red-500/85 text-white text-[7px] font-bold px-1.5 py-px rounded-full animate-pulse">
-                      방금 감지
-                    </div>
-                  )}
+                  {/* 처리 중 오버레이 */}
+                  {(() => {
+                    const stage = getClipStage(clip.pos, progress)
+                    if (stage === 'done') return null
+                    return (
+                      <>
+                        {/* 스캔 라인 */}
+                        <div className="absolute inset-0 overflow-hidden rounded-t-xl pointer-events-none">
+                          <div className="absolute left-0 right-0 h-px opacity-60"
+                            style={{
+                              background:'linear-gradient(to right,transparent,#06b6d4,transparent)',
+                              animation:'scanline 1.8s linear infinite',
+                              top:'0%',
+                            }}/>
+                        </div>
+                        {/* 단계 뱃지 */}
+                        <div className={`absolute top-1 right-1 flex items-center gap-0.5 text-white text-[7px] font-bold px-1.5 py-px rounded-full ${
+                          stage==='detecting'  ? 'bg-yellow-500/80' :
+                          stage==='segmenting' ? 'bg-orange-500/80' :
+                                                 'bg-cyan-500/80'
+                        }`}>
+                          <span className="w-1 h-1 rounded-full bg-white animate-pulse"/>
+                          {stage==='detecting'?'분석 중':stage==='segmenting'?'구간 확정':'인코딩'}
+                        </div>
+                      </>
+                    )
+                  })()}
                 </div>
 
-                {/* 클립 정보 */}
-                <div className="px-2 pt-1.5 pb-2 flex flex-col gap-1">
-                  <div className="flex items-center gap-1">
-                    <div className="text-white/80 text-[10px] font-semibold truncate flex-1">{clip.title}</div>
-                    <div className="relative flex-shrink-0" onClick={e => e.stopPropagation()}>
-                      <button onClick={() => setOpenMenu(openMenu===clip.rank ? null : clip.rank)}
-                        className="text-white/25 hover:text-white/60 p-0.5 rounded transition-colors">
-                        <MoreHorizontal size={10}/>
-                      </button>
-                      {openMenu === clip.rank && (
-                        <div className="absolute right-0 top-full mt-0.5 z-30 bg-[#1a1a2e] border border-white/[0.12] rounded-lg shadow-2xl min-w-[108px] py-1">
-                          {[
-                            { icon:RotateCcw, label:'이 클립 재분석', color:'text-white/60',   nav:null },
-                            { icon:Upload,    label:'업로드',         color:'text-white/60',   nav:'upload' as const },
-                            { icon:Download,  label:'내보내기',       color:'text-white/60',   nav:'export' as const },
-                            { icon:Trash2,    label:'삭제',           color:'text-red-400/70', nav:null },
-                          ].map(({ icon:Icon, label, color, nav }) => (
-                            <button key={label}
-                              onClick={() => { if (nav) { setOpenMenu(null); onNav({ rank:clip.rank, tab:nav }) } }}
-                              className={`flex items-center gap-2 w-full px-3 py-1.5 text-[10px] ${color} hover:bg-white/[0.05] transition-colors`}>
-                              <Icon size={9}/>{label}
+                {/* 클립 정보 — 처리 단계별 분기 */}
+                {(() => {
+                  const stage = getClipStage(clip.pos, progress)
+                  const encPct = getEncodingPct(clip.pos, progress)
+
+                  if (stage === 'done') {
+                    // ── 완료 클립 ───────────────────────────────────
+                    const { startPct, endPct } = parseClipPos(clip.time)
+                    const segW = Math.max(endPct - startPct, 0.9)
+                    return (
+                      <div className="px-2 pt-1.5 pb-2 flex flex-col gap-1">
+                        <div className="flex items-center gap-1">
+                          <div className="text-white/80 text-[10px] font-semibold truncate flex-1">{clip.title}</div>
+                          <div className="relative flex-shrink-0" onClick={e => e.stopPropagation()}>
+                            <button onClick={() => setOpenMenu(openMenu===clip.rank ? null : clip.rank)}
+                              className="text-white/25 hover:text-white/60 p-0.5 rounded transition-colors">
+                              <MoreHorizontal size={10}/>
                             </button>
+                            {openMenu === clip.rank && (
+                              <div className="absolute right-0 top-full mt-0.5 z-30 bg-[#1a1a2e] border border-white/[0.12] rounded-lg shadow-2xl min-w-[108px] py-1">
+                                {[
+                                  { icon:RotateCcw, label:'이 클립 재분석', color:'text-white/60',   nav:null },
+                                  { icon:Upload,    label:'업로드',         color:'text-white/60',   nav:'upload' as const },
+                                  { icon:Download,  label:'내보내기',       color:'text-white/60',   nav:'export' as const },
+                                  { icon:Trash2,    label:'삭제',           color:'text-red-400/70', nav:null },
+                                ].map(({ icon:Icon, label, color, nav }) => (
+                                  <button key={label}
+                                    onClick={() => { if (nav) { setOpenMenu(null); onNav({ rank:clip.rank, tab:nav }) } }}
+                                    className={`flex items-center gap-2 w-full px-3 py-1.5 text-[10px] ${color} hover:bg-white/[0.05] transition-colors`}>
+                                    <Icon size={9}/>{label}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap gap-1">
+                          {clip.tags.map(tag => (
+                            <span key={tag} className="text-[8px] text-accent-purple/70 bg-accent-purple/10 px-1.5 py-px rounded-full">{tag}</span>
                           ))}
                         </div>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap gap-1">
-                    {clip.tags.map(tag => (
-                      <span key={tag} className="text-[8px] text-accent-purple/70 bg-accent-purple/10 px-1.5 py-px rounded-full">{tag}</span>
-                    ))}
-                  </div>
-                  <div className="flex items-center gap-1 text-[8px]">
-                    <span className="text-white/40">{clip.time.split('–')[0]}</span>
-                    <span className="text-white/20">~</span>
-                    <span className="text-white/40">{clip.time.split('–')[1]}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-white/25 text-[8px]">종합 점수</span>
-                    <span className={`font-bold text-[10px] transition-colors ${
-                      hoveredClip===clip.rank ? 'text-accent-purple' : 'text-accent-purple/75'
-                    }`}>{clip.score}점</span>
-                  </div>
-                  <div>
-                    {(() => {
-                      const { startPct, endPct } = parseClipPos(clip.time)
-                      const segW = Math.max(endPct - startPct, 0.9)
-                      return (
-                        <>
+                        <div className="flex items-center gap-1 text-[8px]">
+                          <span className="text-white/40">{clip.time.split('–')[0]}</span>
+                          <span className="text-white/20">~</span>
+                          <span className="text-white/40">{clip.time.split('–')[1]}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-white/25 text-[8px]">종합 점수</span>
+                          <span className={`font-bold text-[10px] transition-colors ${
+                            hoveredClip===clip.rank ? 'text-accent-purple' : 'text-accent-purple/75'
+                          }`}>{clip.score}점</span>
+                        </div>
+                        <div>
                           <div className="flex justify-between text-[7px] text-white/20 mb-0.5">
                             <span>0:00</span>
                             <span className="text-accent-purple/55">{clip.time.split('–')[0]}</span>
-                            <span>7:03</span>
+                            <span className="inline-flex items-center gap-0.5 text-accent-purple/50">
+                              <span className="w-1 h-1 rounded-full bg-accent-purple/60 animate-pulse"/>LIVE
+                            </span>
                           </div>
                           <div className="relative h-1 bg-white/[0.08] rounded-full">
                             <div className="absolute inset-y-0 left-0 rounded-full bg-white/[0.05]" style={{ width:`${startPct}%` }}/>
@@ -1562,11 +1761,59 @@ function LiveAnalysisPage({ onNav, onReanalyze }: { onNav: (nav: UploadNav) => v
                               style={{ left:`${startPct+segW}%`, transform:'translate(-50%,-50%)',
                                 boxShadow:hoveredClip===clip.rank?'0 0 8px rgba(6,182,212,1)':'0 0 4px rgba(6,182,212,.8)' }}/>
                           </div>
-                        </>
-                      )
-                    })()}
-                  </div>
-                </div>
+                        </div>
+                      </div>
+                    )
+                  }
+
+                  // ── 처리 중 클립 ────────────────────────────────
+                  const stageInfo = {
+                    detecting:  { label:'AI 구간 분석 중',  dot:'bg-yellow-400', barColor:'bg-yellow-400/60',  pct: 8  },
+                    segmenting: { label:'구간 확정 중',      dot:'bg-orange-400', barColor:'bg-orange-400/70', pct: 38 },
+                    encoding:   { label:'인코딩 중',         dot:'bg-cyan-400',   barColor:'bg-cyan-400/70',   pct: encPct },
+                  }[stage]
+
+                  const etaSecs = stage === 'encoding'
+                    ? Math.max(3, Math.round((100 - encPct) / 14))
+                    : stage === 'segmenting' ? 12 : 20
+
+                  return (
+                    <div className="px-2 pt-1.5 pb-2 flex flex-col gap-1.5">
+                      {/* 제목 */}
+                      <div className="text-white/60 text-[10px] font-semibold truncate">{clip.title}</div>
+
+                      {/* 처리 상태 */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5">
+                          <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${stageInfo.dot} animate-pulse`}/>
+                          <span className="text-white/50 text-[9px]">{stageInfo.label}...</span>
+                        </div>
+                        <span className="text-white/30 text-[8px]">채팅 <span className="text-cyan-400/80 font-semibold">{clip.chatScore}점</span></span>
+                      </div>
+
+                      {/* 진행 바 */}
+                      <div>
+                        <div className="flex justify-between text-[8px] mb-1">
+                          <span className="text-white/20">{Math.round(stageInfo.pct)}%</span>
+                          <span className="text-white/20">약 {etaSecs}초 후 완료</span>
+                        </div>
+                        <div className="h-1.5 bg-white/[0.07] rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full ${stage !== 'encoding' ? 'transition-all duration-700' : ''} ${stageInfo.barColor}`}
+                            style={{ width:`${stageInfo.pct}%` }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* 태그 (잠정) */}
+                      <div className="flex flex-wrap gap-1">
+                        {clip.tags.map(tag => (
+                          <span key={tag} className="text-[8px] text-white/25 bg-white/[0.04] px-1.5 py-px rounded-full border border-white/[0.07]">{tag}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })()}
               </motion.div>
             ))}
           </div>
@@ -1611,15 +1858,13 @@ function ClipsPage({ onNav, initialOpenClip }: { onNav: (nav: UploadNav) => void
   const [calMonth,      setCalMonth]      = useState(5)
 
   const broadcasts = [
-    { date:'2025.05.27', title:'발로란트 마스터 도전기 EP.12', platform:'치지직', dur:'7:03:15', viewers:'13,204', clips:12, status:'완료' },
-    { date:'2025.05.25', title:'던전파이터 레이드 공략',       platform:'치지직', dur:'4:22:10', viewers:'9,847',  clips:8,  status:'완료' },
-    { date:'2025.05.23', title:'리그 오브 레전드 챌린저 도전', platform:'SOOP',   dur:'5:48:30', viewers:'11,203', clips:10, status:'완료' },
-    { date:'2025.05.21', title:'스타크래프트 래더 매치',       platform:'치지직', dur:'3:11:45', viewers:'7,521',  clips:6,  status:'완료' },
-    { date:'2025.05.19', title:'메이플스토리 보스 공략',       platform:'SOOP',   dur:'6:22:00', viewers:'8,912',  clips:9,  status:'완료' },
+    { date:'2025.05.29', title:'리그 오브 레전드 | 플래 탈출 도전기 EP.8 🎯', platform:'SOOP',   dur:'진행 중', viewers:'11,203', clips:6,  status:'방송중' },
+    { date:'2025.05.27', title:'발로란트 마스터 도전기 EP.12',                  platform:'치지직', dur:'7:03:15',  viewers:'13,204', clips:6,  status:'완료'   },
+    { date:'2025.05.25', title:'📻 자기 전에 잠깐 EP.15 | 이번 주 있었던 일',  platform:'치지직', dur:'2:45:30',  viewers:'8,941',  clips:4,  status:'완료'   },
   ]
 
   const filterDefs = [
-    { id:'genre',    label:'게임 장르', opts:['전체','발로란트','리그오브레전드','기타'] },
+    { id:'genre',    label:'장르', opts:['전체','리그오브레전드','발로란트','보이는라디오'] },
     { id:'platform', label:'플랫폼',   opts:['전체','치지직','SOOP'] },
     { id:'score',    label:'점수 범위', opts:['전체','90~100점','80~89점','70~79점','60~69점'] },
   ]
@@ -1628,8 +1873,11 @@ function ClipsPage({ onNav, initialOpenClip }: { onNav: (nav: UploadNav) => void
     '90~100점':[90,100], '80~89점':[80,89], '70~79점':[70,79], '60~69점':[60,69]
   }
 
+  // 전체 클립 (라이브 + 이력)
+  const ALL_HISTORY_CLIPS = [...ALL_CLIPS, ...VALO_CLIPS, ...RADIO_CLIPS]
+
   // 실제 필터링 + 정렬
-  const displayClips = ALL_CLIPS
+  const displayClips = ALL_HISTORY_CLIPS
     .filter(clip => {
       const f = activeFilters
       if (dateFrom !== '전체' && clip.date < dateFrom) return false
@@ -1690,9 +1938,9 @@ function ClipsPage({ onNav, initialOpenClip }: { onNav: (nav: UploadNav) => void
             <h3 className="text-white font-bold text-sm">방송 & 클립</h3>
             <p className="text-white/35 text-[11px]">
               {viewTab === 'clips'
-                ? displayClips.length < ALL_CLIPS.length
-                  ? <><span className="text-accent-purple font-semibold">{displayClips.length}</span>/{ALL_CLIPS.length}개 클립</>
-                  : <>총 {ALL_CLIPS.length}개 클립</>
+                ? displayClips.length < ALL_HISTORY_CLIPS.length
+                  ? <><span className="text-accent-purple font-semibold">{displayClips.length}</span>/{ALL_HISTORY_CLIPS.length}개 클립</>
+                  : <>총 {ALL_HISTORY_CLIPS.length}개 클립</>
                 : `총 ${broadcasts.length}회 방송`}
             </p>
           </div>
@@ -1729,7 +1977,7 @@ function ClipsPage({ onNav, initialOpenClip }: { onNav: (nav: UploadNav) => void
 
       {/* 방송 이력 탭 */}
       {viewTab === 'broadcast' && (
-        <div className="flex-1 px-5 pt-3 pb-4 flex flex-col gap-3 min-h-0">
+        <div className="flex-1 px-5 pt-3 pb-4 flex flex-col gap-3 min-h-0 overflow-y-auto [&::-webkit-scrollbar]:w-[3px] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-accent-purple/30 [&::-webkit-scrollbar-track]:bg-transparent">
           <div className="grid grid-cols-3 gap-3 flex-shrink-0">
             {([
               { label:'이번 달 총 방송 시간', value:'26h 48m', color:'text-cyan-400'   },
@@ -1769,7 +2017,14 @@ function ClipsPage({ onNav, initialOpenClip }: { onNav: (nav: UploadNav) => void
                       <td className="px-4 py-2.5 text-white/40">{b.dur}</td>
                       <td className="px-4 py-2.5 text-cyan-400">{b.viewers}</td>
                       <td className="px-4 py-2.5 text-accent-purple font-semibold">{b.clips}개</td>
-                      <td className="px-4 py-2.5"><span className="text-green-400/80 bg-green-500/10 px-2 py-px rounded-full">{b.status}</span></td>
+                      <td className="px-4 py-2.5">
+                        {b.status === '방송중'
+                          ? <span className="flex items-center gap-1 text-red-400 bg-red-500/10 px-2 py-px rounded-full w-fit text-[9px]">
+                              <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-ping flex-shrink-0"/>방송중
+                            </span>
+                          : <span className="text-green-400/80 bg-green-500/10 px-2 py-px rounded-full">{b.status}</span>
+                        }
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -1925,7 +2180,7 @@ function ClipsPage({ onNav, initialOpenClip }: { onNav: (nav: UploadNav) => void
         </div>
       </div>
 
-      <div className="flex-1 px-5 pb-4 min-h-0 overflow-y-auto" onClick={closeAll}>
+      <div className="flex-1 px-5 pb-4 min-h-0 overflow-y-auto [&::-webkit-scrollbar]:w-[3px] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-accent-purple/30 [&::-webkit-scrollbar-track]:bg-transparent" onClick={closeAll}>
         {displayClips.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center gap-2 text-white/20">
             <Filter size={28}/>
@@ -2059,20 +2314,55 @@ function ClipsPage({ onNav, initialOpenClip }: { onNav: (nav: UploadNav) => void
 // PAGE 4: 업로드 & 내보내기
 // ══════════════════════════════════════════════════════════
 function UploadPage({ initialNav }: { initialNav: UploadNav | null }) {
-  const [activeTab,         setActiveTab]         = useState<'upload'|'export'>('upload')
-  const [selectedClips,     setSelectedClips]     = useState(new Set<number>([1]))
-  const [clipTitles,        setClipTitles]        = useState<Record<number,number>>({1:0})
-  const [clipTags,          setClipTags]          = useState<Record<number,Set<number>>>({1: new Set([0,1,2,3,4,5])})
-  const [selectedPlatforms, setSelectedPlatforms] = useState(new Set(['YouTube','치지직']))
-  const [exportRatio,       setExportRatio]       = useState('16:9')
-  const [exportSelected,    setExportSelected]    = useState(new Set<number>([1,2]))
-  const [exportFormat,      setExportFormat]      = useState('MP4')
+  const [activeTab,           setActiveTab]           = useState<'upload'|'export'>('upload')
+  const [selectedBroadcast,   setSelectedBroadcast]   = useState<string | null>(null)
+  const [selectedClips,       setSelectedClips]       = useState(new Set<number>([1]))
+  const [clipTitles,          setClipTitles]          = useState<Record<number,number>>({1:0})
+  const [clipTags,            setClipTags]            = useState<Record<number,Set<number>>>({1: new Set([0,1,2,3,4,5])})
+  const [selectedPlatforms,   setSelectedPlatforms]   = useState(new Set(['YouTube','치지직']))
+  const [exportRatio,         setExportRatio]         = useState('16:9')
+  const [exportSelected,      setExportSelected]      = useState(new Set<number>([1,2]))
+  const [exportFormat,        setExportFormat]        = useState('MP4')
+
+  const broadcastClipMap: Record<string, Clip[]> = {
+    '05.29': ALL_CLIPS,
+    '05.27': VALO_CLIPS,
+    '05.25': RADIO_CLIPS,
+  }
+
+  const BROADCAST_CARDS = [
+    {
+      id: '05.29', thumb: imgLol01,   date: '2025.05.29',
+      typeIcon: '🎮', typeLabel: '리그 오브 레전드',
+      title: '리그 오브 레전드 | 플래 탈출 도전기 EP.8',
+      platform: 'SOOP',    platformCls: 'text-orange-400/80 bg-orange-500/10',
+      clips: ALL_CLIPS.length,  statusLive: true,
+    },
+    {
+      id: '05.27', thumb: imgValo01,  date: '2025.05.27',
+      typeIcon: '🎮', typeLabel: '발로란트',
+      title: '발로란트 마스터 도전기 EP.12',
+      platform: '치지직', platformCls: 'text-green-400/80 bg-green-500/10',
+      clips: VALO_CLIPS.length, statusLive: false,
+    },
+    {
+      id: '05.25', thumb: imgRadio01, date: '2025.05.25',
+      typeIcon: '📻', typeLabel: '보이는 라디오',
+      title: '자기 전에 잠깐 EP.15',
+      platform: '치지직', platformCls: 'text-green-400/80 bg-green-500/10',
+      clips: RADIO_CLIPS.length, statusLive: false,
+    },
+  ]
 
   // 다른 페이지 ··· 메뉴에서 이동 시 클립 자동 선택
   useEffect(() => {
     if (!initialNav) return
     const { rank, tab } = initialNav
     setActiveTab(tab)
+    // 클립 rank 기반으로 방송 자동 선택
+    const broadcastId = ALL_CLIPS.find(c => c.rank === rank) ? '05.29'
+      : VALO_CLIPS.find(c => c.rank === rank) ? '05.27' : '05.25'
+    setSelectedBroadcast(broadcastId)
     if (tab === 'upload') {
       setSelectedClips(new Set([rank]))
       setClipTitles({ [rank]: 0 })
@@ -2087,19 +2377,19 @@ function UploadPage({ initialNav }: { initialNav: UploadNav | null }) {
     { name:'치지직',  color:'#00d564', icon:'◈', connected:true  },
     { name:'SOOP',    color:'#ff6b35', icon:'◉', connected:true  },
   ]
-  const uploadClips = CLIPS.slice(0, 3)
+  const uploadClips = selectedBroadcast ? (broadcastClipMap[selectedBroadcast] ?? []) : []
   const connectedNames = platforms.filter(p => p.connected).map(p => p.name)
-  const exportClips = ALL_CLIPS.slice(0,4)
+  const exportClips = selectedBroadcast ? (broadcastClipMap[selectedBroadcast] ?? []).slice(0,4) : ALL_CLIPS.slice(0,4)
 
   // 클립별 AI 추천 제목 2개
   const getAiTitles = (clip: Clip) => [
-    `${clip.title} — 발로란트 EP.12 하이라이트`,
+    `${clip.title} — ${clip.genre} 하이라이트`,
     `이 순간이 바로 클립각! ${clip.title}`,
   ]
 
   // 클립별 AI 추천 태그 풀 — 최대 5개
   const getAiTagPool = (clip: Clip) => {
-    const base = ['#발로란트','#하이라이트','#BJ던파파이터','#치지직','#게임클립']
+    const base = [`#${clip.genre}`, '#하이라이트', `#${clip.platform}`, '#게임클립', '#클립']
     return [...clip.tags.slice(0,2), ...base.filter(t => !clip.tags.includes(t))].slice(0,5)
   }
 
@@ -2175,20 +2465,93 @@ function UploadPage({ initialNav }: { initialNav: UploadNav | null }) {
   return (
     <PageWrap>
       <div className="px-5 pt-4 pb-0 flex-shrink-0">
-        <h3 className="text-white font-bold text-sm">업로드 & 내보내기</h3>
-        <p className="text-white/35 text-[11px]">AI 추천으로 빠르게 업로드하세요</p>
-        <div className="flex gap-1 mt-3 border-b border-white/[0.07]">
-          {(['upload','export'] as const).map(tab => (
-            <button key={tab} onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 text-xs font-semibold transition-colors border-b-2 -mb-px ${
-                activeTab===tab ? 'text-accent-purple border-accent-purple' : 'text-white/35 border-transparent hover:text-white/55'
-              }`}
-            >{tab==='upload'?'업로드':'내보내기'}</button>
-          ))}
+        <div className="flex items-center gap-2">
+          {selectedBroadcast && (
+            <button
+              onClick={() => setSelectedBroadcast(null)}
+              className="flex items-center gap-1 text-white/35 hover:text-white/65 transition-colors text-[11px]"
+            >
+              <ChevronDown size={12} className="rotate-90"/> 뒤로
+            </button>
+          )}
+          <div>
+            <h3 className="text-white font-bold text-sm">업로드 & 내보내기</h3>
+            <p className="text-white/35 text-[11px]">
+              {selectedBroadcast
+                ? BROADCAST_CARDS.find(b => b.id === selectedBroadcast)?.title
+                : '방송을 선택해 클립을 업로드하세요'}
+            </p>
+          </div>
         </div>
+        {selectedBroadcast && (
+          <div className="flex gap-1 mt-3 border-b border-white/[0.07]">
+            {(['upload','export'] as const).map(tab => (
+              <button key={tab} onClick={() => setActiveTab(tab)}
+                className={`px-4 py-2 text-xs font-semibold transition-colors border-b-2 -mb-px ${
+                  activeTab===tab ? 'text-accent-purple border-accent-purple' : 'text-white/35 border-transparent hover:text-white/55'
+                }`}
+              >{tab==='upload'?'업로드':'내보내기'}</button>
+            ))}
+          </div>
+        )}
       </div>
 
-      {activeTab === 'upload' ? (
+      {/* 방송 선택 화면 */}
+      {!selectedBroadcast && (
+        <div className="flex-1 px-5 pt-4 pb-4 flex flex-col gap-3 min-h-0 overflow-y-auto [&::-webkit-scrollbar]:w-[3px] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-accent-purple/35 [&::-webkit-scrollbar-track]:bg-transparent">
+          <div className="grid grid-cols-3 gap-3">
+            {BROADCAST_CARDS.map(b => (
+              <motion.button
+                key={b.id}
+                onClick={() => setSelectedBroadcast(b.id)}
+                whileHover={{ scale:1.02 }}
+                whileTap={{ scale:0.98 }}
+                className="bg-white/[0.04] rounded-xl border border-white/[0.07] hover:border-accent-purple/40 transition-all text-left overflow-hidden flex flex-col"
+              >
+                {/* 정사각형 썸네일 */}
+                <div className="relative w-full" style={{ aspectRatio:'1/1' }}>
+                  <img src={b.thumb} alt={b.title}
+                    className="absolute inset-0 w-full h-full object-cover"/>
+                  {/* 상태 뱃지 */}
+                  <div className="absolute top-2 left-2">
+                    {b.statusLive
+                      ? <span className="flex items-center gap-1 text-[8px] text-red-400 bg-black/60 px-1.5 py-0.5 rounded-full backdrop-blur-sm">
+                          <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-ping"/>LIVE
+                        </span>
+                      : <span className="text-[8px] text-green-400/80 bg-black/60 px-1.5 py-0.5 rounded-full backdrop-blur-sm">완료</span>
+                    }
+                  </div>
+                  {/* 클립 수 */}
+                  <div className="absolute bottom-2 right-2">
+                    <span className="text-[8px] text-white/70 bg-black/60 px-1.5 py-0.5 rounded-full backdrop-blur-sm">
+                      {b.clips}개 클립
+                    </span>
+                  </div>
+                </div>
+
+                {/* 카드 정보 */}
+                <div className="p-2.5 flex flex-col gap-1.5 flex-1">
+                  {/* 타입 + 플랫폼 태그 */}
+                  <div className="flex items-center gap-1 flex-wrap">
+                    <span className="text-[8px] text-white/50 bg-white/[0.06] px-1.5 py-px rounded-full">
+                      {b.typeIcon} {b.typeLabel}
+                    </span>
+                    <span className={`text-[8px] px-1.5 py-px rounded-full font-medium ${b.platformCls}`}>
+                      {b.platform}
+                    </span>
+                  </div>
+                  {/* 날짜 */}
+                  <div className="text-white/30 text-[9px]">{b.date}</div>
+                  {/* 제목 */}
+                  <div className="text-white/75 text-[10px] font-semibold leading-snug line-clamp-2">{b.title}</div>
+                </div>
+              </motion.button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {selectedBroadcast && activeTab === 'upload' ? (
         <div className="flex-1 px-5 pt-3 pb-4 flex flex-col gap-3 min-h-0 overflow-y-auto [&::-webkit-scrollbar]:w-[3px] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-accent-purple/35 [&::-webkit-scrollbar-track]:bg-transparent">
 
           {/* ① 업로드 플랫폼 선택 */}
@@ -2486,7 +2849,7 @@ function UploadPage({ initialNav }: { initialNav: UploadNav | null }) {
             {selectedClips.size}개 클립 · {selectedPlatforms.size}개 플랫폼에 업로드
           </button>
         </div>
-      ) : (
+      ) : selectedBroadcast && (
         <div className="flex-1 px-5 pt-3 pb-4 flex flex-col gap-3 min-h-0 overflow-hidden">
           {/* 클립 선택 */}
           <Card className="flex-1 flex flex-col min-h-0">
@@ -3057,7 +3420,7 @@ function SettingsPage() {
         <p className="text-white/35 text-[11px]">스트림 연동 및 서비스 설정</p>
       </div>
 
-      <div className="flex-1 px-5 pb-4 flex gap-3 min-h-0 overflow-y-auto">
+      <div className="flex-1 px-5 pb-4 flex gap-3 min-h-0 overflow-y-auto [&::-webkit-scrollbar]:w-[3px] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-accent-purple/30 [&::-webkit-scrollbar-track]:bg-transparent">
         {/* ── 왼쪽: 연동 설정 ── */}
         <div className="flex-1 flex flex-col gap-3 min-h-0">
 

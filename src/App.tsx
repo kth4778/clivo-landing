@@ -16,7 +16,7 @@ export default function App() {
       <main>
         <Hero />
         <PainPoints />
-        <LiveDashboard />
+        <section id="서비스소개"><LiveDashboard /></section>
         <HowItWorks />
         <Comparison />
         <InterviewProcess />

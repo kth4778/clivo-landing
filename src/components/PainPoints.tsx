@@ -73,64 +73,65 @@ function ChatMissVisual() {
 // Pain 03 — 채팅 맥락 없이 VOD 편집
 function ChatContextVisual() {
   const clips = [
-    { time: '01:47:22', thumb: '🎮', question: '왜 이 장면이 터진 거지?', chatCount: 0, known: false },
-    { time: '03:18:45', thumb: '⚔️', question: '그냥 전투 장면인데?',     chatCount: 0, known: false },
-    { time: '04:55:10', thumb: '🏆', question: '이게 하이라이트인가?',     chatCount: 0, known: false },
-  ]
-  const realChats = [
-    { time: '01:47:22', peak: 1247, msg: '"ㅋㅋㅋ 이거 완전 클립각" × 340건' },
-    { time: '03:18:45', peak: 892,  msg: '"역대급 역전!!!" × 280건' },
-    { time: '04:55:10', peak: 203,  msg: '"그냥 평범한 장면"' },
+    { time: '01:47:22', dur: '01:58', chatReal: 1247, editorPicked: false },
+    { time: '03:18:45', dur: '02:14', chatReal:   18, editorPicked: true  },
+    { time: '04:55:10', dur: '02:31', chatReal:  892, editorPicked: false },
   ]
 
   return (
     <div className="w-full bg-[#0d0d1a] rounded-xl border border-white/10 overflow-hidden">
       <div className="flex items-center gap-2 px-4 py-2.5 border-b border-white/10 bg-white/5">
-        <span className="text-white/60 text-xs font-semibold">편집자 시점 — VOD만 보는 중</span>
-        <span className="ml-auto text-orange-400/70 text-[11px]">채팅 정보 없음</span>
+        <span className="text-white/60 text-xs font-semibold">편집자가 고른 클립</span>
+        <span className="ml-auto text-orange-400/70 text-[11px]">채팅 데이터 없음</span>
       </div>
 
-      {/* 편집자가 보는 클립 목록 */}
       <div className="p-3 space-y-2">
         {clips.map((c, i) => (
-          <div key={i} className="flex items-center gap-3 bg-white/[0.03] rounded-lg px-3 py-2.5 border border-white/[0.06]">
-            <span className="text-xl flex-shrink-0">{c.thumb}</span>
-            <div className="flex-1 min-w-0">
-              <div className="text-white/55 text-[11px] font-medium">{c.time}</div>
-              <div className="text-orange-300/70 text-[10px] mt-0.5 flex items-center gap-1">
-                <span>❓</span> {c.question}
+          <div key={i} className={`rounded-lg border overflow-hidden ${
+            c.editorPicked
+              ? 'border-accent-purple/40 bg-accent-purple/5'
+              : 'border-white/[0.06] bg-white/[0.02]'
+          }`}>
+            <div className="flex items-center gap-3 px-3 py-2.5">
+              {/* 썸네일 대역 */}
+              <div className="w-16 h-9 rounded bg-white/[0.06] flex-shrink-0 flex items-center justify-center">
+                <span className="text-white/20 text-[9px]">▶ {c.dur}</span>
               </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-white/55 text-[11px] font-mono">{c.time}</div>
+                <div className="text-white/25 text-[10px] mt-0.5">전투 장면 — 영상만으론 구별 불가</div>
+              </div>
+              {c.editorPicked
+                ? <span className="text-accent-purple text-[10px] font-bold px-2 py-0.5 bg-accent-purple/15 rounded-full flex-shrink-0">✓ 선택됨</span>
+                : <span className="text-white/20 text-[10px] px-2 py-0.5 rounded-full flex-shrink-0">패스</span>
+              }
             </div>
-            <div className="flex-shrink-0 text-[10px] text-white/20 bg-white/[0.04] px-2 py-1 rounded border border-white/[0.06]">
-              채팅 모름
-            </div>
-          </div>
-        ))}
-      </div>
 
-      {/* 실제 채팅 반응 — 편집자가 모르는 정보 */}
-      <div className="border-t border-white/10 px-3 py-2.5">
-        <div className="text-white/30 text-[10px] mb-2">실제 그 순간 채팅 반응 (편집자는 알 수 없음)</div>
-        {realChats.map((r, i) => (
-          <div key={i} className="flex items-center gap-2 mb-1.5">
-            <span className="text-white/25 text-[10px] w-14 flex-shrink-0">{r.time}</span>
-            <div className="flex-1 h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
-              <div className="h-full rounded-full"
-                style={{
-                  width: `${Math.round(r.peak / 13)}%`,
-                  background: r.peak > 500 ? '#a855f7' : r.peak > 300 ? '#06b6d4' : '#ffffff33'
-                }}/>
+            {/* 실제 채팅 반응 공개 */}
+            <div className={`px-3 py-2 border-t flex items-center gap-2 ${
+              c.editorPicked ? 'border-accent-purple/20 bg-black/20' : 'border-white/[0.05] bg-black/10'
+            }`}>
+              <span className="text-white/25 text-[9px] w-14 flex-shrink-0">실제 채팅</span>
+              <div className="flex-1 h-1 bg-white/[0.06] rounded-full overflow-hidden">
+                <div className="h-full rounded-full transition-all"
+                  style={{
+                    width: `${Math.round(c.chatReal / 13)}%`,
+                    background: c.chatReal > 500 ? '#a855f7' : c.chatReal > 100 ? '#06b6d4' : 'rgba(255,255,255,0.15)'
+                  }}/>
+              </div>
+              <span className={`text-[9px] font-semibold w-16 text-right flex-shrink-0 ${
+                c.chatReal > 500 ? 'text-purple-400' : c.chatReal > 100 ? 'text-cyan-400' : 'text-white/20'
+              }`}>
+                {c.chatReal > 500 ? '🔥 ' : c.chatReal > 100 ? '💬 ' : '😶 '}{c.chatReal.toLocaleString()}/분
+              </span>
             </div>
-            <span className={`text-[9px] flex-shrink-0 ${r.peak > 500 ? 'text-purple-400' : r.peak > 300 ? 'text-cyan-400' : 'text-white/25'}`}>
-              {r.peak > 300 ? `🔥 ${r.peak}/분` : `${r.peak}/분`}
-            </span>
           </div>
         ))}
       </div>
 
       <div className="px-3 pb-3">
         <div className="flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 rounded-lg px-3 py-2">
-          <span className="text-orange-300/80 text-xs">"이 장면이 왜 터졌는지" — 편집자는 영원히 모름</span>
+          <span className="text-orange-300/80 text-xs">채팅이 폭발한 장면을 두고 평범한 클립을 선택</span>
         </div>
       </div>
     </div>
@@ -139,74 +140,60 @@ function ChatContextVisual() {
 
 // Pain 04 — 채널이 늘수록 편집자 혼자 감당 불가
 function ScalingPainVisual() {
-  const months = ['1개월', '3개월', '6개월', '현재']
-  const editorLoad = [18, 33, 52, 88] // 업무 부담 %
-  const channels =  [1,   2,   3,   5]
+  const requests = [
+    { name: '김코딩',   platform: '치지직', dur: '7h 03m', clips: 12, color: '#00d564', read: false },
+    { name: '박롤러',   platform: 'SOOP',   dur: '5h 48m', clips: 8,  color: '#ff6b35', read: false },
+    { name: '이발로',   platform: '치지직', dur: '6h 22m', clips: 15, color: '#00d564', read: false },
+    { name: '최게임',   platform: 'SOOP',   dur: '3h 11m', clips: 6,  color: '#ff6b35', read: false },
+  ]
+  const totalClips = requests.reduce((s, r) => s + r.clips, 0)
+  const totalHours = '22h 24m'
 
   return (
     <div className="w-full bg-[#0d0d1a] rounded-xl border border-white/10 overflow-hidden">
       <div className="flex items-center gap-2 px-4 py-2.5 border-b border-white/10 bg-white/5">
-        <span className="text-white/60 text-xs font-semibold">편집자 1인 업무 증가 추이</span>
-        <span className="ml-auto text-red-400/70 text-[11px] animate-pulse">한계 초과 중</span>
+        <span className="text-white/60 text-xs font-semibold">클립 요청 수신함</span>
+        <span className="ml-auto flex items-center gap-1.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse"/>
+          <span className="text-red-400/80 text-[11px] font-semibold">{requests.length}건 미처리</span>
+        </span>
       </div>
 
-      {/* 업무 증가 그래프 */}
-      <div className="px-4 pt-4 pb-2">
-        <div className="relative h-28">
-          {/* 한계선 */}
-          <div className="absolute left-0 right-0 border-t border-dashed border-red-500/40" style={{ top: '10%' }}>
-            <span className="absolute right-0 -top-4 text-[9px] text-red-400/60">한계선</span>
-          </div>
-          {/* 그래프 바 */}
-          <div className="absolute bottom-0 left-0 right-0 flex items-end gap-3 h-full">
-            {editorLoad.map((load, i) => (
-              <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                <div className="w-full rounded-t-md relative overflow-hidden"
-                  style={{
-                    height: `${load}%`,
-                    background: load >= 80
-                      ? 'linear-gradient(to top, rgba(239,68,68,0.7), rgba(239,68,68,0.4))'
-                      : load >= 50
-                      ? 'linear-gradient(to top, rgba(251,146,60,0.6), rgba(251,146,60,0.3))'
-                      : 'linear-gradient(to top, rgba(124,58,237,0.5), rgba(124,58,237,0.2))',
-                    border: `1px solid ${load >= 80 ? 'rgba(239,68,68,0.5)' : load >= 50 ? 'rgba(251,146,60,0.4)' : 'rgba(124,58,237,0.4)'}`,
-                    boxShadow: load >= 80 ? '0 0 12px rgba(239,68,68,0.3)' : undefined,
-                  }}>
-                  <span className="absolute top-1 left-0 right-0 text-center text-[8px] font-bold text-white/70">
-                    {load >= 80 ? '😵' : load >= 50 ? '😓' : '🙂'}
-                  </span>
-                </div>
+      {/* 요청 카드 스택 */}
+      <div className="p-3 space-y-2">
+        {requests.map((r, i) => (
+          <div key={i} className="flex items-center gap-3 bg-white/[0.03] rounded-lg px-3 py-2.5 border border-white/[0.06]">
+            {/* 채널 아이콘 */}
+            <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-[11px] font-bold"
+              style={{ background: r.color + '22', border: `1px solid ${r.color}55`, color: r.color }}>
+              {r.name[0]}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span className="text-white/70 text-[11px] font-semibold">{r.name}</span>
+                <span className="text-[8px] px-1.5 py-px rounded-full font-medium"
+                  style={{ color: r.color, background: r.color + '18' }}>{r.platform}</span>
               </div>
-            ))}
-          </div>
-        </div>
-        {/* x축 레이블 */}
-        <div className="flex gap-3 mt-1">
-          {months.map((m, i) => (
-            <div key={i} className="flex-1 text-center">
-              <div className="text-[9px] text-white/35">{m}</div>
-              <div className="text-[9px] text-white/20">채널 {channels[i]}개</div>
+              <div className="text-white/30 text-[10px] mt-0.5">방송 끝났어요, 클립 부탁해요 🙏</div>
             </div>
-          ))}
-        </div>
-      </div>
-
-      {/* 현재 상태 */}
-      <div className="px-4 pb-3 pt-1 space-y-1.5">
-        {[
-          { label: '주간 편집 시간',  value: '60h+',   color: 'text-red-400',    bar: 95 },
-          { label: '처리 못한 클립',  value: '23개',   color: 'text-orange-400', bar: 65 },
-          { label: '평균 수면 시간',  value: '4.5h',   color: 'text-yellow-400', bar: 38 },
-        ].map((s, i) => (
-          <div key={i} className="flex items-center gap-3">
-            <span className="text-white/40 text-[10px] w-24 flex-shrink-0">{s.label}</span>
-            <div className="flex-1 h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
-              <div className={`h-full rounded-full`}
-                style={{ width: `${s.bar}%`, background: s.bar > 80 ? 'rgba(239,68,68,0.6)' : s.bar > 50 ? 'rgba(251,146,60,0.6)' : 'rgba(234,179,8,0.6)' }}/>
+            <div className="text-right flex-shrink-0">
+              <div className="text-orange-400/80 text-[10px] font-semibold">{r.clips}개</div>
+              <div className="text-white/20 text-[9px]">VOD {r.dur}</div>
             </div>
-            <span className={`text-[11px] font-bold w-10 flex-shrink-0 text-right ${s.color}`}>{s.value}</span>
           </div>
         ))}
+      </div>
+
+      {/* 편집자 상태 */}
+      <div className="border-t border-white/[0.07] mx-3 mb-3 pt-2.5">
+        <div className="flex items-center gap-2.5 bg-white/[0.03] rounded-lg px-3 py-2 border border-white/[0.05]">
+          <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-[10px] flex-shrink-0">편</div>
+          <div className="flex-1 min-w-0">
+            <div className="text-white/40 text-[10px]">지금 다른 방송 편집 중이에요... 😓</div>
+            <div className="text-white/20 text-[9px] mt-0.5">총 대기: {totalClips}개 클립 · {totalHours} VOD</div>
+          </div>
+          <span className="text-red-400/70 text-[9px] bg-red-500/10 px-1.5 py-0.5 rounded flex-shrink-0">한계</span>
+        </div>
       </div>
 
       <div className="px-3 pb-3">
