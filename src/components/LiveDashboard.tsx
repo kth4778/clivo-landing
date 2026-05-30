@@ -1167,33 +1167,26 @@ function LiveAnalysisPage() {
                 </div>
               </div>
               {/* 주요 순간 마커 */}
-              <div className="flex" style={{alignItems:'stretch'}}>
-                <div className="text-[8.5px] text-white/25 text-right pr-2 flex-shrink-0 flex items-center justify-end" style={{width:'42px'}}>주요순간</div>
-                <div className="relative flex-1" style={{height:'52px'}}>
-                  {/* 중앙 점선 */}
-                  <div className="absolute left-0 right-0 border-t border-dashed border-white/[0.08]" style={{top:'50%'}}/>
-                  {clipMoments.map((m, mi) => {
-                    const isTop = mi % 2 === 0
-                    return (
-                      <div key={mi} className="absolute -translate-x-1/2 group/moment" style={{left:`${m.pct}%`, top:0, bottom:0}}>
-                        {/* 틱 선 */}
-                        <div className="absolute left-1/2 -translate-x-1/2 w-px opacity-40"
-                          style={{
-                            background: m.color,
-                            top: isTop ? 0 : '50%',
-                            bottom: isTop ? '50%' : 0,
-                          }}/>
-                        {/* 라벨 칩 */}
-                        <div className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center gap-px z-10"
-                          style={{ top: isTop ? 0 : undefined, bottom: isTop ? undefined : 0 }}>
-                          <div className="text-[7px] px-1 py-px rounded border font-semibold whitespace-nowrap leading-tight"
-                            style={{background:m.bg, borderColor:m.border, color:m.color, maxWidth:'58px', overflow:'hidden', textOverflow:'ellipsis'}}>
-                            {m.icon} {m.label}
-                          </div>
+              <div className="flex items-center">
+                <div className="text-[8.5px] text-white/25 text-right pr-2 flex-shrink-0" style={{width:'42px'}}>주요순간</div>
+                <div className="relative flex-1" style={{height:'28px'}}>
+                  <div className="absolute top-1/2 left-0 right-0 border-t border-dashed border-white/[0.08]" style={{transform:'translateY(-50%)'}}/>
+                  {clipMoments.map((m, mi) => (
+                    <div key={mi} className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 group/moment z-10" style={{left:`${m.pct}%`}}>
+                      {/* 이모지 아이콘 */}
+                      <div className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] border cursor-default transition-transform group-hover/moment:scale-125"
+                        style={{background:m.bg, borderColor:m.border}}>
+                        {m.icon}
+                      </div>
+                      {/* 호버 툴팁 */}
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 pointer-events-none opacity-0 group-hover/moment:opacity-100 transition-opacity z-20 whitespace-nowrap">
+                        <div className="text-[8px] px-1.5 py-0.5 rounded border font-semibold"
+                          style={{background:'#0f0f1e', borderColor:m.border, color:m.color}}>
+                          {m.label}
                         </div>
                       </div>
-                    )
-                  })}
+                    </div>
+                  ))}
                 </div>
               </div>
               {/* 타임라인 바 + 타임스탬프 */}
