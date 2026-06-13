@@ -34,8 +34,11 @@ export default function Nav() {
     >
       <nav className="max-w-6xl mx-auto px-5 md:px-8 h-16 flex items-center justify-between">
         {/* Logo */}
-        <a href="#" className="flex items-center">
+        <a href="#" className="flex items-center gap-2">
           <img src="/logo.png" alt="PokeClip" className="h-8 w-auto" />
+          <span className="font-syne font-bold text-lg tracking-tight">
+            <span style={{ color: '#a855f7' }}>Poke</span><span className="text-text-primary">Clip</span>
+          </span>
         </a>
 
         {/* Desktop Menu */}
