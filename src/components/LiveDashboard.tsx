@@ -3211,7 +3211,7 @@ function SettingsPage() {
 
   const CLIVO_RTMP    = 'rtmp://stream.clivo.ai/live'
   const CLIVO_CHZ_KEY = 'clv_chz_9f3k••••••••'
-  // SOOP 키가 입력되면 해시 기반으로 Clivo 키 생성 (데모용 결정론적 값)
+  // SOOP 키가 입력되면 해시 기반으로 PokeClip 키 생성 (데모용 결정론적 값)
   const CLIVO_SOOP_KEY = soopKey
     ? 'clv_soop_' + (soopKey.slice(-4).padStart(4,'x')) + '••••••••'
     : ''
@@ -3264,7 +3264,7 @@ function SettingsPage() {
             <div className="flex items-center gap-1.5 mb-3 bg-white/[0.03] rounded-lg px-3 py-2 border border-white/[0.06]">
               <span className="text-white/40 text-[10px] font-mono">OBS</span>
               <span className="text-white/20 text-[10px]">→</span>
-              <span className="text-accent-purple text-[10px] font-semibold">Clivo 서버</span>
+              <span className="text-accent-purple text-[10px] font-semibold">PokeClip 서버</span>
               <span className="text-white/20 text-[10px]">→</span>
               <span className="text-green-400 text-[10px] font-mono">치지직 / SOOP</span>
               <span className="text-white/20 text-[9px] ml-auto">릴레이 방식</span>
@@ -3407,11 +3407,11 @@ function SettingsPage() {
             ))}
           </Card>
 
-          {/* Clivo 플랜 */}
+          {/* PokeClip 플랜 */}
           <Card className="p-3">
             <div className="flex items-center gap-2 mb-2.5">
               <Star size={11} className="text-yellow-400"/>
-              <span className="text-white/55 text-[11px] font-semibold">Clivo 플랜</span>
+              <span className="text-white/55 text-[11px] font-semibold">PokeClip 플랜</span>
               <span className="ml-auto text-[8px] px-1.5 py-px rounded-full bg-yellow-400/15 text-yellow-400 font-bold">Pro</span>
             </div>
             {/* 사용량 바 */}
@@ -3518,7 +3518,7 @@ export default function LiveDashboard() {
                 <div className="w-6 h-6 rounded-md bg-accent-purple flex items-center justify-center">
                   <Zap size={12} className="text-white"/>
                 </div>
-                <span className="font-bold text-white text-sm tracking-tight">Clivo.ai</span>
+                <span className="font-bold text-white text-sm tracking-tight">PokeClip</span>
               </div>
               <nav className="flex-1 py-2">
                 {NAV.map(({ icon:Icon, label, page, badge }) => (

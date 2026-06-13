@@ -42,7 +42,7 @@ export default function HowItWorks() {
             className="font-syne font-bold text-text-primary"
             style={{ fontSize: 'clamp(24px, 3.5vw, 36px)' }}
           >
-            Clivo.ai는{' '}
+            PokeClip은{' '}
             <span className="gradient-text">방송 중에 이미 끝냅니다</span>
           </h2>
         </motion.div>

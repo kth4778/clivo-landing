@@ -107,7 +107,7 @@ export default function Comparison() {
                   </th>
                 ))}
                 <th className="py-3.5 px-6 text-center w-[21%]">
-                  <span className="block text-sm font-bold text-accent-purple">Clivo.ai</span>
+                  <span className="block text-sm font-bold text-accent-purple">PokeClip</span>
                   <span className="block text-[11px] text-accent-purple/50 mt-0.5">우리 서비스</span>
                 </th>
               </tr>

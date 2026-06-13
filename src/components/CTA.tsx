@@ -39,7 +39,7 @@ export default function CTA() {
           className="text-text-muted text-base leading-relaxed"
           style={{ lineHeight: 1.75 }}
         >
-          편집자·스트리머 10인의 인터뷰를 통해 Clivo.ai를 만들어가고 있습니다.
+          편집자·스트리머 10인의 인터뷰를 통해 PokeClip을 만들어가고 있습니다.
           <br className="hidden sm:block" />
           30분 인터뷰에 참여해 주시면 출시 시 서비스 이용권을 드립니다.
         </motion.p>
