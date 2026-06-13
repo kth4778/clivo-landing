@@ -1,4 +1,17 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
-  <rect width="200" height="200" rx="44" fill="#a855f7"/>
-  <path d="M 58 46 L 78 46 L 142 73 L 78 100 L 78 154 L 58 154 Z" fill="white"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <path fill="#a855f7" fill-rule="evenodd" d="
+    M 35 167
+    L 35 43
+    Q 35 25 51 34
+    L 170 99
+    Q 180 105 170 111
+    L 51 176
+    Q 35 185 35 167
+    Z
+    M 54 48
+    L 54 112
+    C 80 128 118 100 118 80
+    C 118 56 80 30 54 48
+    Z
+  "/>
 </svg>
