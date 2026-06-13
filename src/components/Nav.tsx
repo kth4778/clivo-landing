@@ -34,8 +34,8 @@ export default function Nav() {
     >
       <nav className="max-w-6xl mx-auto px-5 md:px-8 h-16 flex items-center justify-between">
         {/* Logo */}
-        <a href="#" className="font-syne font-bold text-xl text-text-primary tracking-tight">
-          PokeClip
+        <a href="#" className="flex items-center">
+          <img src="/logo.png" alt="PokeClip" className="h-8 w-auto" />
         </a>
 
         {/* Desktop Menu */}
